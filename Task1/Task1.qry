@@ -1,0 +1,14 @@
+#PARSER PQL
+#DEFINE STARTTS 10748401988186756
+#DEFINE OUTPUT WORKSPACE*\TILB\Task1\
+#DROPALLQUERIES
+#QUERY
+
+
+
+joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, soccergame)
+
+result = SELECT({predicate = 'entity = "Ball"'},joinout)
+
+
+

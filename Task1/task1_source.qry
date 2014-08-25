@@ -1,0 +1,83 @@
+#DROPALLSOURCES
+#PARSER PQL
+#DEFINE DATAFILENAME WORKSPACE*\TILB\Task1\sample_game_dataset.csv
+#DEFINE METAFILENAME WORKSPACE*\TILB\Task1\EntitySensorMapping.csv
+#DEFINE IRFILENAME WORKSPACE*\TILB\Task1\GameInterruptions.csv
+#DEFINE GOALFILENAME WORKSPACE*\TILB\Task1\Example\GoalMapping.csv
+
+
+#RUNQUERY
+soccergame := ACCESS({
+	source='soccergame',
+	wrapper='GenericPull',
+	transport='file',
+	protocol='simplecsv',
+	dataHandler='tuple',
+	schema=[
+		['sid', 'integer'],
+		['ts', 'starttimestamp'],
+		['x', 'integer'],
+		['y', 'integer'],
+		['z', 'integer'],
+		['v', 'integer'],
+		['a', 'integer'],
+		['vx', 'integer'],
+		['vy', 'integer'],
+		['vz', 'integer'],
+		['ax', 'integer'],
+		['ay', 'integer'],
+		['az', 'integer']
+	],
+	options=[['filename','${DATAFILENAME}'],['Delimiter',',']]
+})
+
+metadata := ACCESS({
+	source='metadata',
+	wrapper='GenericPull',
+	transport='file',
+	protocol='simplecsv',
+	dataHandler='tuple',
+	schema=[			
+		['entity_id', 'integer'],
+		['entity', 'string'],
+		['sensorid', 'integer'],
+		['remark', 'string'],
+		['team_id', 'integer']
+	],
+	options=[
+		['filename','${METAFILENAME}'],['Delimiter',';']
+	]
+})
+
+interruptions := ACCESS({
+	source='interruptions',
+	wrapper='GenericPull',
+	transport='file',
+	protocol='simplecsv',
+	dataHandler='tuple',
+	schema=[			
+		['start_ts', 'starttimestamp'],
+		['end_ts', 'endtimestamp'],
+		['interruption', 'boolean']
+	],
+	options=[
+		['filename','${IRFILENAME}'],['Delimiter',';']
+	]
+})
+
+goals := ACCESS({
+	source='goals',
+	wrapper='GenericPull',
+	transport='file',
+	protocol='simplecsv',
+	dataHandler='tuple',
+	schema=[			
+		['iwie_ts_1', 'starttimestamp'],
+		['iwie_ts_2', 'endtimestamp'],
+		['in_field', 'integer'],
+		['ka', 'string']
+	],
+	options=[
+		['filename','${GOALFILENAME}'],['Delimiter',';']
+	]
+})
