@@ -1,9 +1,9 @@
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME WORKSPACE*\TILB\Task1\sample_game_dataset.csv
-#DEFINE METAFILENAME WORKSPACE*\TILB\Task1\EntitySensorMapping.csv
-#DEFINE IRFILENAME WORKSPACE*\TILB\Task1\GameInterruptions.csv
-#DEFINE GOALFILENAME WORKSPACE*\TILB\Task1\Example\GoalMapping.csv
+#DEFINE DATAFILENAME \Task1\sample_game_dataset.csv
+#DEFINE METAFILENAME \Task1\EntitySensorMapping.csv
+#DEFINE IRFILENAME \Task1\GameInterruptions.csv
+#DEFINE GOALFILENAME \Task1\Example\GoalMapping.csv
 
 
 #RUNQUERY
@@ -28,7 +28,7 @@ soccergame := ACCESS({
 		['ay', 'integer'],
 		['az', 'integer']
 	],
-	options=[['filename','${DATAFILENAME}'],['Delimiter',',']]
+	options=[['filename','${PROJECTPATH}${DATAFILENAME}'],['Delimiter',',']]
 })
 
 metadata := ACCESS({
@@ -45,7 +45,7 @@ metadata := ACCESS({
 		['team_id', 'integer']
 	],
 	options=[
-		['filename','${METAFILENAME}'],['Delimiter',';']
+		['filename','${PROJECTPATH}${METAFILENAME}'],['Delimiter',';']
 	]
 })
 
@@ -61,7 +61,7 @@ interruptions := ACCESS({
 		['interruption', 'boolean']
 	],
 	options=[
-		['filename','${IRFILENAME}'],['Delimiter',';']
+		['filename','${PROJECTPATH}${IRFILENAME}'],['Delimiter',';']
 	]
 })
 
@@ -78,6 +78,6 @@ goals := ACCESS({
 		['ka', 'string']
 	],
 	options=[
-		['filename','${GOALFILENAME}'],['Delimiter',';']
+		['filename','${PROJECTPATH}${GOALFILENAME}'],['Delimiter',';']
 	]
 })
