@@ -9,15 +9,9 @@
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, soccergame)
 
 firstResult = SELECT({predicate = 'entity = "Ball"'},joinout)
-ballInFieldX = SELECT({predicate = '-50 < y < 52489'}, firstresult)
-ballInFieldXY = SELECT({predicate = '-33939 < x < 33965'}, ballInFieldX)
+ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
+ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-time = TIMEWINDOW({size = 5, advance = 1}, firstResult)
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballInFieldXY)
 
-max = AGGREGATE({group_by = ['sid'], aggregations=[ ['MAX', 'ts', 'max_ts', 'StartTimestamp'] ]}, time)
-min = AGGREGATE({group_by = ['sid'], aggregations=[ ['MIN', 'ts', 'min_ts', 'StartTimestamp'] ]}, time)
-
-
-
-
-
+///out = AGGREGATE({group_by = ['sensorid'], aggregations = [['COUNT', 'entity_id', 'COUNT_sensorid', 'integer']]}, oneminute)
