@@ -1,6 +1,6 @@
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME \Task1\sample_game_dataset.csv
+#DEFINE DATAFILENAME \Task1\sample_data_set.csv
 #DEFINE METAFILENAME \Task1\EntitySensorMapping.csv
 #DEFINE IRFILENAME \Task1\GameInterruptions.csv
 #DEFINE GOALFILENAME \Task1\Example\GoalMapping.csv
@@ -15,18 +15,18 @@ soccergame := ACCESS({
 	dataHandler='tuple',
 	schema=[
 		['sid', 'integer'],
-		['ts', 'starttimestamp'],
-		['x', 'integer'],
-		['y', 'integer'],
-		['z', 'integer'],
-		['v', 'integer'],
-		['a', 'integer'],
-		['vx', 'integer'],
-		['vy', 'integer'],
-		['vz', 'integer'],
-		['ax', 'integer'],
-		['ay', 'integer'],
-		['az', 'integer']
+		['timestamp', 'starttimestamp'],
+		['sens_x', 'integer'],
+		['sens_y', 'integer'],
+		['sens_z', 'integer'],
+		['sens_speed', 'integer'],
+		['accel', 'integer'],
+		['speed_x', 'integer'],
+		['speed_y', 'integer'],
+		['speed_z', 'integer'],
+		['accel_x', 'integer'],
+		['accel_y', 'integer'],
+		['accel_z', 'integer']
 	],
 	options=[['filename','${PROJECTPATH}${DATAFILENAME}'],['Delimiter',',']]
 })
