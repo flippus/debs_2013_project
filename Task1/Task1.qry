@@ -8,7 +8,9 @@
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, soccergame)
 
-firstResult = SELECT({predicate = 'entity = "Ball"'},joinout)
+playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495 && (timestamp < 12557295594424116 || timestamp > 13086639146403495)'},joinout)
+
+firstResult = SELECT({predicate = 'entity = "Ball"'}, playtime)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
