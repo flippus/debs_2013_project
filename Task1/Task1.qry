@@ -15,8 +15,8 @@ firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ENRICH({minimumsize = 42, PREDICATE = RelationalPredicate('timestamp <= start_interruption AND timestamp >= end_interruption')}, System.interruptions, ballInFieldXY))
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballInFieldXY)///, ENRICH({minimumsize = 42, PREDICATE = RelationalPredicate('timestamp <= start_interruption AND timestamp >= end_interruption')}, System.interruptions, ballInFieldXY))
 
-map_parameters_for_computation = STATEMAP({expressions = [['__last_1.timestamp', 'old_timestamp'], 'timestamp', ['__last_1.sensorid', 'old_sensorid'], 'sensorid']}, oneminute)
+map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['__last_1.timestamp', 'old_timestamp'], 'timestamp']}, oneminute)
 
 out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'timestamp', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
