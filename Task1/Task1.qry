@@ -4,16 +4,19 @@
 #DROPALLQUERIES
 #QUERY
 
-
 playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495 && (timestamp < 12557295594424116 || timestamp > 13086639146403495)'}, soccergame)
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
+///TODO: join, union or intersection with (non-)interrupts: timestamp < interruptions.start_ts && timestamp > interruptions.end_ts
+///real_interrupts = SELECT({PREDICATE='interruptions.interruption == true', interruptions})
 
 firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballInFieldXY)
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ENRICH({minimumsize = 42, PREDICATE = RelationalPredicate('timestamp <= start_interruption AND timestamp >= end_interruption')}, System.interruptions, ballInFieldXY))
 
-///out = AGGREGATE({group_by = ['sensorid'], aggregations = [['COUNT', 'entity_id', 'COUNT_sensorid', 'integer']]}, oneminute)
+map_parameters_for_computation = STATEMAP({expressions = [['__last_1.timestamp', 'old_timestamp'], 'timestamp', ['__last_1.sensorid', 'old_sensorid'], 'sensorid']}, oneminute)
+
+out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'timestamp', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
