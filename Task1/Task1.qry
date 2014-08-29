@@ -19,4 +19,6 @@ oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballI
 
 map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['timestamp - __last_1.timestamp', 'time_diff']]}, oneminute)
 
+///TODO: predicatewindow für ballwechsel- und unterbrechungseinbindung, aber wie joinen?!
+
 out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
