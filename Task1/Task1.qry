@@ -12,7 +12,7 @@ firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['timestamp - __last_1.timestamp', 'time_diff']]}, ballInFieldXY)
+map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', 'timestamp', ['timestamp - __last_1.timestamp', 'time_diff']]}, ballInFieldXY)
 
 oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, map_parameters_for_computation)
 
@@ -22,4 +22,4 @@ streams_join = join(oneminute, no_interrupts)
 
 ///TODO: ich glaube, die halbzeit/unterbrechungen sind noch nicht korrekt berücksichtigt
 
-out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, streams_join)
+///out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, streams_join)
