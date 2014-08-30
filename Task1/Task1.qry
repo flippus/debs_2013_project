@@ -8,21 +8,20 @@ playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 148
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
-///TODO: join, union or intersection with (non-)interrupts: timestamp < interruptions.start_ts && timestamp > interruptions.end_ts
-///real_interrupts = SELECT({PREDICATE='interruptions.interruption = true'}, System.interruptions)
-
 firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-/// causes unhandled loop exception?!
-///data = PROJECT({attributes = ['sensorid', 'timestamp']}, ballInFieldXY)
+data = PROJECT({attributes = ['sensorid', 'timestamp']}, ballInFieldXY)
 
 map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['timestamp - __last_1.timestamp', 'time_diff']]}, ballInFieldXY)
 
-///TODO: predicatewindow für ballwechsel- und unterbrechungseinbindung, aber wie joinen?!
-/// maybe misunderstanding of predicatewindow?!
-///pwindow = PREDICATEWINDOW({start = 'old_sensorid = sensorid', end = 'old_sensorid != sensorid'}, oneminute)
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, map_parameters_for_computation)
 
+no_interrupts = SELECT({PREDICATE='interruptions.interruption = false'}, System.interruptions)
 
-out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation )
+streams_join = join(oneminute, no_interrupts)
+
+///TODO: correct?!
+
+out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, streams_join)
