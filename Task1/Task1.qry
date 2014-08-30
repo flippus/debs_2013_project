@@ -12,14 +12,16 @@ firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', 'timestamp', ['timestamp - __last_1.timestamp', 'time_diff']]}, ballInFieldXY)
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballInFieldXY)
 
-oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, map_parameters_for_computation)
+streams_join = join(oneminute, System.interruptions)
 
-no_interrupts = SELECT({PREDICATE='interruptions.interruption = false'}, System.interruptions)
+map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, streams_join)
 
-streams_join = join(oneminute, no_interrupts)
+///sensor_group = COALESCE({ATTR = ['interruption'], AGGREGATIONS = [['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
 
-///TODO: ich glaube, die halbzeit/unterbrechungen sind noch nicht korrekt berücksichtigt
+aggregate_time = AGGREGATE({group_by = ['sensorid', 'interruption'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
 
-///out = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, streams_join)
+no_interrupts = SELECT({predicate = 'interruption = false'}, aggregate_time)
+
+result = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'COUNT_time', 'COUNT_time', 'timestamp']]}, no_interrupts)
