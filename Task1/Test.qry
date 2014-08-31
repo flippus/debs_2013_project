@@ -21,7 +21,6 @@ no_interrupts = SELECT({predicate = 'interruption = false'}, map_parameters_for_
      
 	///agg${i} = AGGREGATE({aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, ${i}:ball)
 
-///output1_${i} = PROJECT({attributes = [	'ts_start', 'ts_stop', 'player_id', 'intensity', 'distance', 'speed']}, player3_${i})
 ///#ENDLOOP
 
 result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, no_interrupts)
