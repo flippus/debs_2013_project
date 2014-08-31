@@ -1,7 +1,7 @@
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME \Task1\sample_data_set.csv
-#DEFINE METAFILENAME \Task1\dataTest.csv
+#DEFINE DATAFILENAME \Task1\dataTest.csv
+#DEFINE METAFILENAME \Task1\EntitySensorMapping.csv
 #DEFINE IRFILENAME \Task1\InterruptionTest.csv
 #DEFINE GOALFILENAME \Task1\Example\GoalMapping.csv
 
