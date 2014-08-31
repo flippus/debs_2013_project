@@ -20,8 +20,6 @@ improve_join = SELECT({predicate = 'timestamp >= start_interruption && timestamp
 
 map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sensorid', 'old_sensorid'], 'sensorid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
 
-aggregate_time = AGGREGATE({group_by = ['sensorid', 'interruption'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
-
-no_interrupts = SELECT({predicate = 'interruption = false'}, aggregate_time)
+no_interrupts = SELECT({predicate = 'interruption = false'}, map_parameters_for_computation)
 
 result = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'COUNT_time', 'COUNT_time', 'timestamp']]}, no_interrupts)
