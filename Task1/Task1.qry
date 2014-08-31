@@ -4,7 +4,7 @@
 #DROPALLQUERIES
 #QUERY
 
-playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495 && (timestamp < 12557295594424116 || timestamp > 13086639146403495)'}, soccergame)
+playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
