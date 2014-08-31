@@ -10,10 +10,18 @@ streams_join = join(oneminute, System.interruptions)
 
 improve_join = SELECT({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption'}, streams_join)
 
-map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sid', 'old_sid'], 'sid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
+map_parameters_for_computation = STATEMAP({expressions = ['sid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
 
-aggregate_time = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
+no_interrupts = SELECT({predicate = 'interruption = false'}, map_parameters_for_computation)
 
-///no_interrupts = SELECT({predicate = 'interruption = false'}, aggregate_time)
+///ball = ROUTE({predicates=[RelationalPredicate('sid = 4'), RelationalPredicate('sid = 8'), 
+			///RelationalPredicate('sid = 10'), RelationalPredicate('sid = 12')]}, no_interrupts)
 
-///result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'COUNT_time', 'COUNT_time', 'timestamp']]}, no_interrupts)
+///#LOOP i 0 UPTO 4			
+     
+	///agg${i} = AGGREGATE({aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, ${i}:ball)
+
+///output1_${i} = PROJECT({attributes = [	'ts_start', 'ts_stop', 'player_id', 'intensity', 'distance', 'speed']}, player3_${i})
+///#ENDLOOP
+
+result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, no_interrupts)
