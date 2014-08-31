@@ -1,0 +1,19 @@
+#PARSER PQL
+#DEFINE STARTTS 10748401988186756
+#DEFINE OUTPUT WORKSPACE*\TILB\Task1\
+#DROPALLQUERIES
+#QUERY
+
+oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, soccergame)
+
+streams_join = join(oneminute, System.interruptions)
+
+improve_join = SELECT({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption'}, streams_join)
+
+map_parameters_for_computation = STATEMAP({expressions = [['__last_1.sid', 'old_sid'], 'sid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
+
+aggregate_time = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
+
+///no_interrupts = SELECT({predicate = 'interruption = false'}, aggregate_time)
+
+///result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'COUNT_time', 'COUNT_time', 'timestamp']]}, no_interrupts)
