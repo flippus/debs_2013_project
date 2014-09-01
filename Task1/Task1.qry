@@ -12,7 +12,7 @@ firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, ballInFieldXY)
+oneminute = TIMEWINDOW({size = 600000000000000}, ballInFieldXY)
 
 streams_join = join(oneminute, System.interruptions)
 
