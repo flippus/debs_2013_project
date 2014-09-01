@@ -14,13 +14,4 @@ map_parameters_for_computation = STATEMAP({expressions = ['sid', ['timestamp - _
 
 no_interrupts = SELECT({predicate = 'interruption = false'}, map_parameters_for_computation)
 
-///ball = ROUTE({predicates=[RelationalPredicate('sid = 4'), RelationalPredicate('sid = 8'), 
-			///RelationalPredicate('sid = 10'), RelationalPredicate('sid = 12')]}, no_interrupts)
-
-///#LOOP i 0 UPTO 4			
-     
-	///agg${i} = AGGREGATE({aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, ${i}:ball)
-
-///#ENDLOOP
-
 result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, no_interrupts)
