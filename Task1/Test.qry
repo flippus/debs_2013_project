@@ -4,14 +4,12 @@
 #DROPALLQUERIES
 #QUERY
 
-oneminute = TIMEWINDOW({size = 600000000000000}, soccergame)
+oneminute = TIMEWINDOW({size = 6000000000}, soccergame)
 
-streams_join = join(oneminute, System.interruptions)
+no_interrupts = SELECT({predicate = 'interruption = true'}, System.interruptions)
 
-improve_join = SELECT({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption'}, streams_join)
+streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption'}, oneminute, no_interrupts)
 
-map_parameters_for_computation = STATEMAP({expressions = ['sid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
+map_parameters_for_computation = STATEMAP({expressions = ['sid', ['timestamp - __last_1.timestamp', 'time_diff']]}, streams_join)
 
-no_interrupts = SELECT({predicate = 'interruption = false'}, map_parameters_for_computation)
-
-result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, no_interrupts)
+result = AGGREGATE({group_by = ['sid'], aggregations=[['SUM', 'time_diff', 'COUNT_time', 'timestamp']]}, map_parameters_for_computation)
