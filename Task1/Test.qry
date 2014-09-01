@@ -4,7 +4,7 @@
 #DROPALLQUERIES
 #QUERY
 
-oneminute = TIMEWINDOW({size = 600000000000000, advance = 10000000000000}, soccergame)
+oneminute = TIMEWINDOW({size = 600000000000000}, soccergame)
 
 streams_join = join(oneminute, System.interruptions)
 
