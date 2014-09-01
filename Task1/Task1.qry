@@ -18,7 +18,7 @@ streams_join = join(oneminute, System.interruptions)
 
 improve_join = SELECT({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption'}, streams_join)
 
-map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['timestamp - __last_1.timestamp', 'time_diff'], 'interruption']}, improve_join)
+map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/10^12', 'time_diff'], 'interruption']}, improve_join)
 
 no_interrupts = SELECT({predicate = 'interruption = true'}, map_parameters_for_computation)
 
