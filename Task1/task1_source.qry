@@ -56,8 +56,8 @@ interruptions := ACCESS({
 	protocol='simplecsv',
 	dataHandler='tuple',
 	schema=[			
-		['start_interruption', 'starttimestamp'],
-		['end_interruption', 'endtimestamp'],
+		['start_interruption', 'long'],
+		['end_interruption', 'long'],
 		['interruption', 'boolean']
 	],
 	options=[
