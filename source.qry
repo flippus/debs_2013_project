@@ -58,7 +58,7 @@ interruptions := ACCESS({
 	schema=[			
 		['start_interruption', 'long'],
 		['end_interruption', 'long'],
-		['interruption', 'boolean']
+		['playing', 'boolean']
 	],
 	options=[
 		['filename','${PROJECTPATH}${IRFILENAME}'],['Delimiter',';']
@@ -72,10 +72,10 @@ goals := ACCESS({
 	protocol='simplecsv',
 	dataHandler='tuple',
 	schema=[			
-		['iwie_ts_1', 'starttimestamp'],
-		['iwie_ts_2', 'endtimestamp'],
-		['in_field', 'integer'],
-		['ka', 'string']
+		['halftime_start', 'starttimestamp'],
+		['halftime_end', 'endtimestamp'],
+		['team', 'integer'],
+		['side', 'string']
 	],
 	options=[
 		['filename','${PROJECTPATH}${GOALFILENAME}'],['Delimiter',';']
