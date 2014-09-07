@@ -20,8 +20,11 @@ without_referee = SELECT({predicate = 'entity_id != 21'}, included_interruptions
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
-halfside_joined = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end', CARD = 'MANY_ONE'}, without_referee, System.goals)
-only_opponents_shots = SELECT({predicate = 'entity_id != 21'}, halfside_joined)
+///TODO: does not work because ball is filtered out
+///TODO: possible to determine by fixed stuff: data from halftime and goal data?!
+///TODO: then leave out join and use select instead
+halfside_joined = join({predicate = 'team_id = team'}, without_referee, System.goals)
+///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
 
 
 ///search for timestamp by select loop to check every found value
