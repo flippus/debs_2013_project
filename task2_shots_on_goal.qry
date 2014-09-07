@@ -1,0 +1,45 @@
+#PARSER PQL
+#DEFINE STARTTS 10748401988186756
+#DEFINE OUTPUT \task1.csv
+#DROPALLQUERIES
+#QUERY
+
+playtime = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
+
+joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
+
+streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, joinout, System.interruptions)
+
+///remove referee and goalkeeper hands by a select
+/// sids: 97, 98, 99, 100, 105, 106
+
+///select where player and ball are in same area at same time
+///TODO: determine how you can find out if a ball is hit, maybe the solution proposed above?
+
+///select where player shoots on opponents goal
+///TODO: specification (work with match side probably)
+
+///search for timestamp by select loop to check every found value
+
+///timewindow of 1s from timestamp which does not move further, alternatively a select search with the interval of 1s
+///alternative is probably better
+
+///aggregation of ball movement to compute speed >= 55 m/s^2
+/// by adding the different acceleration values and compute an average?
+/// does the direction count for this? probably not?! so just |a| converted to m/s^2 ?
+
+///timewindow of 1,5s from timestamp
+///really necessary?! see above line 21/22
+
+///does ball fly to goal area
+///check if the location values of the ball would be inside the goal area 
+///if the ball is imaginally moved to there
+
+///does ball reach goal area within 1,5s
+///select timestamp plus at maximum adding 1,5s 
+///needs to check every value because it could be blocked before the 1,5s
+
+///check if ball leaves field or can't hit goal area anymore due to direction change
+///check if the field borders are crossed by a simple select?!
+///check direction changes by detecting acceleration changes?!
+///TODO: more detailed specification
