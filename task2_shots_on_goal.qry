@@ -4,20 +4,25 @@
 #DROPALLQUERIES
 #QUERY
 
-playtime = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
+matchstart = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
 
-joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
+included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, matchstart)
 
-streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, joinout, System.interruptions)
+included_interruptions = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, included_metadata, System.interruptions)
 
-///remove referee and goalkeeper hands by a select
-/// sids: 97, 98, 99, 100, 105, 106
+///remove referee and (necessary: goalkeeper hands?)
+/// sids: 97, 98, 99, 100
+without_referee = SELECT({predicate = 'entity_id != 21'}, included_interruptions)
 
+///detect ball hits
 ///select where player and ball are in same area at same time
 ///TODO: determine how you can find out if a ball is hit, maybe the solution proposed above?
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
+halfside_joined = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end', CARD = 'MANY_ONE'}, without_referee, System.goals)
+only_opponents_shots = SELECT({predicate = 'entity_id != 21'}, halfside_joined)
+
 
 ///search for timestamp by select loop to check every found value
 
@@ -40,6 +45,7 @@ streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <
 ///needs to check every value because it could be blocked before the 1,5s
 
 ///check if ball leaves field or can't hit goal area anymore due to direction change
-///check if the field borders are crossed by a simple select?!
+///check if the field borders are crossed by a simple select?! select probably doesn't work
 ///check direction changes by detecting acceleration changes?!
+///TODO: how to finish and go to the next goal shot?!
 ///TODO: more detailed specification
