@@ -3,7 +3,7 @@
 #DEFINE DATAFILENAME \one_ball_sample.csv
 #DEFINE METAFILENAME \EntitySensorMapping.csv
 #DEFINE IRFILENAME \GameInterruptions.csv
-#DEFINE GOALFILENAME \Example\GoalMapping.csv
+#DEFINE GOALFILENAME \GoalMapping.csv
 
 
 #RUNQUERY
