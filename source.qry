@@ -72,8 +72,8 @@ goals := ACCESS({
 	protocol='simplecsv',
 	dataHandler='tuple',
 	schema=[			
-		['halftime_start', 'starttimestamp'],
-		['halftime_end', 'endtimestamp'],
+		['halftime_start', 'long'],
+		['halftime_end', 'long'],
 		['team', 'integer'],
 		['side', 'string']
 	],
