@@ -12,9 +12,7 @@ firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-oneminute = TIMEWINDOW({size = 6000000000000000}, ballInFieldXY)
-
-streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, oneminute, System.interruptions)
+streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, ballInFieldXY, System.interruptions)
 
 map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/10^12', 'time_diff'], 'playing']}, streams_join)
 
