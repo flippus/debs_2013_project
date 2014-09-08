@@ -12,27 +12,34 @@ included_interruptions = join({predicate = 'timestamp >= start_interruption && t
 
 ///remove referee and (necessary: goalkeeper hands?)
 /// sids: 97, 98, 99, 100
+///passt!
 without_referee = SELECT({predicate = 'entity_id != 21'}, included_interruptions)
 
 ///detect ball hits
 ///select where player and ball are in same area at same time
-///TODO: determine how you can find out if a ball is hit, maybe the solution proposed above?
+///ball and player are in same area at same time with 1m tolerance. ball changes acceleration
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
 ///TODO: does not work because ball is filtered out
 ///TODO: possible to determine by fixed stuff: data from halftime and goal data?!
 ///TODO: then leave out join and use select instead
+///spielfeldmitte ist bei y = 0
+///left_outer_join
+///notfall join und merge
 halfside_joined = join({predicate = 'team_id = team'}, without_referee, System.goals)
 ///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
 
 
+
 ///search for timestamp by select loop to check every found value
+
+///nur bälle ab hier
 
 ///timewindow of 1s from timestamp which does not move further, alternatively a select search with the interval of 1s
 ///alternative is probably better, and a third alternative would be maybe the coalesce operator
 
-///aggregation of ball movement to compute speed >= 55 m/s^2
+///aggregation of ball movement to compute acceleration >= 55 m/s^2
 /// by adding the different acceleration values and compute an average?
 /// does the direction count for this? probably not?! so just |a| converted to m/s^2 ?
 
@@ -42,6 +49,7 @@ halfside_joined = join({predicate = 'team_id = team'}, without_referee, System.g
 ///does ball fly to goal area
 ///check if the location values of the ball would be inside the goal area 
 ///check by extropolation of the acceleration values or by a simple straight-forward beaming of the ball without paying attention to ball movement
+///not necessary
 
 ///does ball reach goal area within 1,5s
 ///select timestamp plus at maximum adding 1,5s, maybe instead the coalesce operator
