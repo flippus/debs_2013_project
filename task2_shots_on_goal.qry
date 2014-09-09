@@ -27,17 +27,6 @@ player_events_renaming = RENAME({aliases = ['name', 'sensid', 'team_id', 'timest
 
 ball_with_player = join({predicate = 'timestamp = timestampp && ((sens_x + 1 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1 <= sensor_z && sens_z >= sensor_z))', CARD = 'ONE_ONE'}, ball_events, player_events_renaming)
 
-///select where player shoots on opponents goal
-///TODO: specification (work with match side probably)
-///TODO: does not work because ball is filtered out
-///TODO: possible to determine by fixed stuff: data from halftime and goal data?!
-///TODO: then leave out join and use select instead
-///spielfeldmitte ist bei y = 0
-///left_outer_join
-///notfall join und merge
-///halfside_joined = join({predicate = 'team_id = team'}, inFieldX, System.goals)
-///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
-
 
 
 ///search for timestamp by select loop to check every found value
@@ -68,3 +57,9 @@ ball_with_player = join({predicate = 'timestamp = timestampp && ((sens_x + 1 >= 
 ///check direction changes by detecting acceleration changes?!
 ///TODO: how to finish and go to the next goal shot?!
 ///TODO: more detailed specification
+
+///select where player shoots on opponents goal
+///TODO: specification (work with match side probably)
+///spielfeldmitte ist bei y = 0
+///ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end'}, ball_player_projection, System.goals)
+///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
