@@ -19,6 +19,12 @@ without_referee = SELECT({predicate = 'entity_id != 21 && sensorid != 97 && sens
 inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_referee)
 inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
+ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
+player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
+player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id', 'timestamp', 'sens_x', 'sens_y', 'sens_z']}, player_events)
+player_events_renaming = RENAME({aliases = ['name', 'sensid', 'team_id', 'timestampp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
+
+ball_with_player = join({predicate = 'timestamp = timestampp && ((sens_x + 1 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1 <= sensor_z && sens_z >= sensor_z))', CARD = 'ONE_ONE'}, ball_events, player_events_renaming)
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
@@ -28,7 +34,7 @@ inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 ///spielfeldmitte ist bei y = 0
 ///left_outer_join
 ///notfall join und merge
-halfside_joined = join({predicate = 'team_id = team'}, without_referee, System.goals)
+///halfside_joined = join({predicate = 'team_id = team'}, inFieldX, System.goals)
 ///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
 
 
