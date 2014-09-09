@@ -10,14 +10,15 @@ included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('s
 
 included_interruptions = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, included_metadata, System.interruptions)
 
-///remove referee and (necessary: goalkeeper hands?)
-/// sids: 97, 98, 99, 100
-///passt!
-without_referee = SELECT({predicate = 'entity_id != 21'}, included_interruptions)
+///remove referee and goalkeeper hands
+without_referee = SELECT({predicate = 'entity_id != 21 && sensorid != 97 && sensorid != 98 && sensorid != 99 && sensorid != 100'}, included_interruptions)
 
 ///detect ball hits
 ///select where player and ball are in same area at same time
 ///ball and player are in same area at same time with 1m tolerance. ball changes acceleration
+inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_referee)
+inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
+
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
