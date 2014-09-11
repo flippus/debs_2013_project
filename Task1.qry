@@ -19,5 +19,3 @@ map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timesta
 no_interrupts = SELECT({predicate = 'playing = true'}, map_parameters_for_computation)
 
 result = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'ball_time', 'timestamp']]}, no_interrupts)
-
-///output = FILESINK({FILENAME='${PROJECTPATH}${OUTPUT}', filetype = 'csv'}, result)
