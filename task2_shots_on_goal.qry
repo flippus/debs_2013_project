@@ -47,11 +47,12 @@ sufficient_acceleration = SELECT({predicate = '(acceleration_sum/event_count)/10
 ///needs to check every value because it could be blocked before the 1,5s
 ///TODO: see above goal_area check
 
-///check if ball leaves field or can't hit goal area anymore due to direction change
-///check if the field borders are crossed?! select probably doesn't work, maybe the coalesce operator?!
-///check direction changes by detecting acceleration changes?!
-///TODO: how to finish and go to the next goal shot?!
-///TODO: more detailed specification
+///TODO: finish implementation
+///then we have a list of goal hits, what are we doing afterwards? :P searching for the timestamps in the whole file to receive following values to compute the other steps?!
+///search for timestamp by select to check every found value?!
+///ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= timestampp && timestamp <= timestampp) || (timestamp - 1000000000 <= timestampp && timestamp >= timestampp)', CARD = 'ONE_MANY'}, ball_events_projection, player_events_renaming)
+///ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
+///ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z', 'name', 'player_id', 'team_id', 'timestampp' ]}, ball_with_player_nearby)
 
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
