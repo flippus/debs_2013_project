@@ -44,8 +44,8 @@ preparing_data_for_goal_shot_detection = COALESCE({predicate='start_timestamp - 
 sufficient_acceleration = SELECT({predicate = '(acceleration_sum/event_count)/10^10 >= 55'}, preparing_data_for_goal_shot_detection)
 
 ///does ball reach goal area within 1,5s
-///select timestamp plus at maximum adding 1,5s, maybe instead the coalesce operator
 ///needs to check every value because it could be blocked before the 1,5s
+///TODO: see above goal_area check
 
 ///check if ball leaves field or can't hit goal area anymore due to direction change
 ///check if the field borders are crossed?! select probably doesn't work, maybe the coalesce operator?!
@@ -56,5 +56,6 @@ sufficient_acceleration = SELECT({predicate = '(acceleration_sum/event_count)/10
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
 ///spielfeldmitte ist bei y = 0
+///remove goal shot if goalkeeper of same team is last man touching the ball
 ///ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end'}, ball_player_projection, System.goals)
 ///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
