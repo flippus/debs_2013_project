@@ -13,8 +13,7 @@ included_interruptions = join({predicate = 'timestamp >= start_interruption && t
 ///remove referee and goalkeeper hands
 without_referee = SELECT({predicate = 'entity_id != 21 && sensorid != 97 && sensorid != 98 && sensorid != 99 && sensorid != 100'}, included_interruptions)
 
-///detect ball hits
-///ball and player are in same area at same time with 1m tolerance
+///sensor_data must be inside the game field
 inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_referee)
 inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
@@ -41,6 +40,8 @@ sufficient_acceleration = SELECT({predicate = '(acceleration_sum/event_count)/10
 reached_goal_area = SELECT({predicate = 'in_goal_area = true'}, sufficient_acceleration)
 
 ///TODO: adapt attribute names from aggregations: actually replace timestamp by start_timestamp
+///detect ball shooter
+///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
 ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= timestampp && timestamp <= timestampp) || (timestamp - 1000000000 <= timestampp && timestamp >= timestampp)', CARD = 'ONE_MANY'}, reached_goal_area, player_events_renaming)
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
 ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z', 'name', 'player_id', 'team_id', 'timestampp' ]}, ball_with_player_nearby)
@@ -48,6 +49,5 @@ ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 's
 ///select where player shoots on opponents goal
 ///TODO: specification (work with match side probably)
 ///spielfeldmitte ist bei y = 0
-///remove goal shot if goalkeeper of same team is last man touching the ball
 ///ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end'}, ball_player_projection, System.goals)
 ///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
