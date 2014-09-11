@@ -14,11 +14,11 @@ included_interruptions = join({predicate = 'timestamp >= start_interruption && t
 without_referee = SELECT({predicate = 'entity_id != 21 && sensorid != 97 && sensorid != 98 && sensorid != 99 && sensorid != 100'}, included_interruptions)
 
 ///detect ball hits
-///select where player and ball are in same area at same time
-///ball and player are in same area at same time with 1m tolerance. ball changes acceleration
+///ball and player are in same area at same time with 1m tolerance
 inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_referee)
 inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
+///TODO: replace both selects by one filter statement?!
 ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
 ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z']}, ball_events)
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
