@@ -26,13 +26,13 @@ player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id
 ///maybe renaming timestampp to player_time or ball_hit_time
 player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'timestampp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
 
-ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= timestampp && timestamp <= timestampp) || (timestamp - 1000000000 <= timestampp && timestamp >= timestampp)', CARD = 'ONE_MANY'}, ball_events_projection, player_events_renaming)
-ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
-ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z', 'name', 'player_id', 'team_id', 'timestampp' ]}, ball_with_player_nearby)
-
-///TODO: discuss with abou
-///we have a list of goal hits, what are we doing now? :P searching for the timestamps in the whole file to receive following values to compute the other steps?!
-///search for timestamp by select to check every found value?!
+///TODO: add goal_area check for every value
+/// 0 inside
+/// 1 outside
+///search for min
+previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', ['__last_1.accel', 'last_accel'], 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
+///TODO: how to preserve attributes in an aggregation command: take first e.g.
+preparing_data_for_goal_shot_detection = COALESCE({predicate='start_timestamp - end_timestamp <= 500000000000 && sid = last_sid && (accel + 10 >= last_accel || accel - 10 <= last_accel) ', AGGREGATIONS=[['first','sid','sid'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['count','timestamp','event_count']['sum','accel','acceleration_sum']}, previous_ball_event_sid)
 
 ///timewindow of 1s from timestamp which does not move further, alternatively a select search with the interval of 1s
 ///alternative is probably better, and a third alternative would be maybe the coalesce operator
