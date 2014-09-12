@@ -17,7 +17,7 @@ inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
 ///TODO: replace both selects by one filter statement?!
 ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
-ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z']}, ball_events)
+ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events)
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
 player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id', 'timestamp', 'sens_x', 'sens_y', 'sens_z']}, player_events)
 ///maybe renaming timestampp to player_time or ball_hit_time
