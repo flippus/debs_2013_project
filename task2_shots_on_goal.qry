@@ -44,8 +44,7 @@ ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
 ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z', 'name', 'player_id', 'team_id', 'timestampp' ]}, ball_with_player_nearby)
 
-///select where player shoots on opponents goal
-///TODO: specification (work with match side probably)
-///spielfeldmitte ist bei y = 0
-///ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end'}, ball_player_projection, System.goals)
-///only_opponents_shots = SELECT({predicate = 'team_id = 1 && '}, halfside_joined)
+///select where player shoots on opponents goal and to exclude return passes by using team_id and timestamp to identify the sides. y > 0 means left side and vice versa
+///TODO: adapt attribute names from aggregations: actually replace timestamp by start_timestamp
+ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end && team_id = team'}, ball_player_projection, System.goals)
+only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y < 0) || (side = "left" && sens_y > 0)'}, halfside_joined)
