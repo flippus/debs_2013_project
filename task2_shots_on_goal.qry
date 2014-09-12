@@ -49,5 +49,5 @@ ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && se
 ball_player_projection = PROJECT({attributes = ['sid', 'start_timestamp', 'sens_x', 'sens_y', 'sens_z', 'name', 'player_id', 'team_id', 'timestampp' ]}, ball_with_player_nearby)
 
 ///select where player shoots on opponents goal and to exclude return passes by using team_id and timestamp to identify the sides. y > 0 means left side and vice versa
-only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y < 0) || (side = "left" && sens_y > 0)'}, halfside_joined)
 ball_with_halfsides = join({predicate = 'start_timestamp >= halftime_start && start_timestamp <= halftime_end && team_id = team'}, ball_player_projection, System.goals)
+only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (side = "left" && sens_y < 0)'}, ball_with_halfsides)
