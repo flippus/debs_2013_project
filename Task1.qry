@@ -6,8 +6,8 @@ playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 148
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
-firstResult = SELECT({predicate = 'entity = "Ball"'}, joinout)
-ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, firstresult)
+only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
+ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, only_balls)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
 streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, ballInFieldXY, System.interruptions)
