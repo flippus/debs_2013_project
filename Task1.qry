@@ -12,7 +12,7 @@ ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballIn
 
 streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, ballInFieldXY, System.interruptions)
 
-map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/10^12', 'time_diff'], 'playing']}, streams_join)
+map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing']}, streams_join)
 
 no_interrupts = SELECT({predicate = 'playing = true'}, map_parameters_for_computation)
 
