@@ -17,4 +17,4 @@ all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= 0 && sens_y <= 0) || (sens_y - 1000 <= 0 && sens_y >= 0))'}, all_goals_without_sid, only_balls)
 
-goal_projection = MAP({expressions = [['goal_time/(6*10^13)', 'goal_time']]}, only_valid_goals)
+goal_projection = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, only_valid_goals)
