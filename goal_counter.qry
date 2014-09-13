@@ -7,6 +7,7 @@ playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 148
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
 only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
+///TODO: we need the goal coordinates instead of the goal area coordinates to make it work correctly
 ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < -33968) || (sens_x > 22578 && sens_x < 29898 && sens_y > 33941)'}, only_balls)
 
 interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
@@ -16,5 +17,5 @@ all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 
 all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all_goals)
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= 0 && sens_y <= 0) || (sens_y - 1000 <= 0 && sens_y >= 0))'}, all_goals_without_sid, only_balls)
-
+///TODO: ensure the uniqueness of goals: use probably distinct operator
 goal_projection = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, only_valid_goals)
