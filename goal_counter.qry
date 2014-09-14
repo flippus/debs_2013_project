@@ -19,3 +19,8 @@ all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= 0 && sens_y <= 0) || (sens_y - 1000 <= 0 && sens_y >= 0))'}, all_goals_without_sid, only_balls)
 ///TODO: ensure the uniqueness of goals: use probably distinct operator
 goal_projection = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, only_valid_goals)
+
+///TODO: use coalesce to ensure that a ball lies at least 1 to 5 seconds in the middle area so that it is very sure that a kick-off is done
+///TODO: before use a statemap to get the search_time of the last entry and do a predicate search_time = last_search_time && ball = in middle, aggregate first and last timestamp of ball in middle area
+///TODO: last do a select where last - first timestamp > (1 to 5 seconds)
+
