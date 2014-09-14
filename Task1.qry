@@ -7,13 +7,14 @@ playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 148
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
 only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
-ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, only_balls)
+
+streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, only_balls, System.interruptions)
+
+map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing', 'sens_x', 'sens_y']}, streams_join)
+
+ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, map_parameters_for_computation)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
-streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, ballInFieldXY, System.interruptions)
-
-map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing']}, streams_join)
-
-no_interrupts = SELECT({predicate = 'playing = true'}, map_parameters_for_computation)
+no_interrupts = SELECT({predicate = 'playing = true'}, ballInFieldXY)
 
 result = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'ball_time', 'timestamp']]}, no_interrupts)
