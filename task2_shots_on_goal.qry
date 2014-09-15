@@ -44,7 +44,7 @@ all_possible_goal_shots_with_events = join({predicate = 'ball_hit_timestamp + 15
 ///select where acceleration >= 55 m/s^2
 ///TODO: divide through last - first timestamp instead of 1s
 preparing_data_for_sufficient_acceleration = COALESCE({predicate='ball_hit_timestamp + 1000000000 >= timestamp && (accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['count','timestamp','event_count'], ['sum','accel','acceleration_sum'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sens_z','sens_z']]}, all_possible_goal_shots_with_events)
-sufficient_acceleration = SELECT({predicate = '((acceleration_sum/event_count*1000)/((end_timestamp - start_timestamp))/1000000000000) >= 55'}, preparing_data_for_sufficient_acceleration)
+sufficient_acceleration = SELECT({predicate = '((acceleration_sum/event_count*1000)/((end_timestamp - ball_hit_timestamp))/1000000000000) >= 55'}, preparing_data_for_sufficient_acceleration)
 
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
 ///max of a boolean value is true, min is false
