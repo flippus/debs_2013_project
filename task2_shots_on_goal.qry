@@ -38,7 +38,6 @@ only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (s
 ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'name', 'player_id']}, only_opponents_shots)
 ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'name', 'player_id']}, ball_player_remove_useless_attributes)
 
-///TODO: rename second stream to avoid naming problems
 all_possible_goal_shots_with_events = join({predicate = 'ball_hit_timestamp + 1500000000 >= timestamp && sensorid = sid'}, ball_player_renaming, previous_ball_event_sid)
 
 ///select where acceleration >= 55 m/s^2
@@ -49,7 +48,7 @@ sufficient_acceleration = SELECT({predicate = '((acceleration_sum/event_count*10
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
 ///max of a boolean value is true, min is false
 ///TODO: coalesce does not work
-preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp2'], ['max','in_goal_area','in_goal_area']]}, all_possible_goal_shots_with_events)
+preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sid','sensorid'], ['first','ball_hit_timestamp','ball_hit_timestamp2'], ['max','in_goal_area','in_goal_area']]}, all_possible_goal_shots_with_events)
 ///must be in goal area at least in one event
 reached_goal_area = SELECT({predicate = 'in_goal_area = true'}, preparing_data_for_reached_goal_area)
 
