@@ -23,7 +23,7 @@ player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id
 player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'player_hit_timestamp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
 
 ///add the acceleration and sid values of the previous data line to the current to be able to detect changes
-previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', ['__last_1.accel', 'last_accel'], 'speed_x', 'speed_y', 'speed_x', 'accel_x', 'accel_y', 'accel_z', ['(sens_x > 22578.5 && sens_x < 29898.5 && sens_y = 33941.0 && sens_z < 2440.0) || (sens_x > 22560.0 && sens_x < 29880.0 && sens_y = -33968.0 && sens_z < 2440.0)', 'in_goal_area']]}, ball_events_projection)
+previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', ['__last_1.accel', 'last_accel'], 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z', ['(sens_x > 22578.5 && sens_x < 29898.5 && sens_y = 33941.0 && sens_z < 2440.0) || (sens_x > 22560.0 && sens_x < 29880.0 && sens_y = -33968.0 && sens_z < 2440.0)', 'in_goal_area']]}, ball_events_projection)
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
