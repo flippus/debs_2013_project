@@ -41,12 +41,11 @@ ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'nam
 all_possible_goal_shots_with_events = join({predicate = 'ball_hit_timestamp + 1500000000 >= timestamp && sensorid = sid'}, ball_player_renaming, previous_ball_event_sid)
 
 ///select where acceleration >= 55 m/s^2
-preparing_data_for_sufficient_acceleration = COALESCE({predicate='ball_hit_timestamp + 1000000000 >= timestamp && (accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['count','timestamp','event_count'], ['sum','accel','acceleration_sum'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sens_z','sens_z']]}, all_possible_goal_shots_with_events)
-sufficient_acceleration = SELECT({predicate = '((acceleration_sum/event_count*1000)/((end_timestamp - ball_hit_timestamp))/1000000000000) >= 55'}, preparing_data_for_sufficient_acceleration)
+preparing_data_for_sufficient_acceleration = COALESCE({predicate='ball_hit_timestamp + 1000000000 >= timestamp && (accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['avg','accel','acceleration_avg'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sens_z','sens_z']]}, all_possible_goal_shots_with_events)
+sufficient_acceleration = SELECT({predicate = '((acceleration_avg/1000000)/((end_timestamp - ball_hit_timestamp))/1000000000000) >= 55'}, preparing_data_for_sufficient_acceleration)
 
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
 ///max of a boolean value is true, min is false
-///TODO: coalesce does not work
 preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 10 >= last_accel || accel - 10 <= last_accel)', AGGREGATIONS=[['first','sid','sensorid'], ['first','ball_hit_timestamp','ball_hit_timestamp2'], ['max','in_goal_area','in_goal_area']]}, all_possible_goal_shots_with_events)
 ///must be in goal area at least in one event
 reached_goal_area = SELECT({predicate = 'in_goal_area = true'}, preparing_data_for_reached_goal_area)
