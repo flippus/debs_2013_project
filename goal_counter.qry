@@ -22,7 +22,12 @@ only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp &
 ///TODO: before use a statemap to get the search_time of the last entry and do a predicate search_time = last_search_time && ball = in middle, aggregate first and last timestamp of ball in middle area
 ///TODO: last do a select where last - first timestamp > (1 to 5 seconds)
 
-///TODO: timestamp of goal in second half?!
-///TODO: maybe filter out timestamps > first_half_end and use the other port to use a different computation and merge them again together#
-goal_time_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, only_valid_goals)
-goals_only_once = CHANGEDETECT({ATTR = ['goal_time'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, goal_time_in_match_minutes)
+///TODO: test for second half
+first_half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116'}, only_valid_goals)
+goal_time_first_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, first_half_time_distinction)
+second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, only_valid_goals)
+goal_time_second_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116 - 52934355197938)/60000000000000', 'goal_time']]}, second_half_time_distinction)
+
+merge_half_time_goals = MERGE(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
+
+goals_only_once = CHANGEDETECT({ATTR = ['goal_time'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, merge_half_time_goals)
