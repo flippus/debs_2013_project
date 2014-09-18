@@ -12,19 +12,19 @@ ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < 
 interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
 
 all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 'goal_time', 'timestamp'], ['last', 'timestamp', 'search_time', 'timestamp']]}, interruption_join)
-
 all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all_goals)
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= 0 && sens_y <= 0) || (sens_y - 1000 <= 0 && sens_y >= 0))'}, all_goals_without_sid, only_balls)
 
-///TODO: use coalesce to ensure that a ball lies at least 1 to 5 seconds in the middle area so that it is very sure that a kick-off is done
-///TODO: before use a statemap to get the search_time of the last entry and do a predicate search_time = last_search_time && ball = in middle, aggregate first and last timestamp of ball in middle area
-///TODO: last do a select where last - first timestamp > (1 to 5 seconds)
+add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time', 'last_goal_time'], 'timestamp', 'accel']}, only_valid_goals)
+aggregating_goal_data = COALESCE({predicate='goal_time = last_goal_time && accel = 0', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp']]}, add_last_goal_time)
+ball_more_than_5_seconds_in_middle = SELECT({predicate = 'start_timestamp - end_timestamp > 5000000000000'}, aggregating_goal_data)
+interruption_after_goal = join({predicate = 'goal_time < start_interruption && end_timestamp > start_interruption && playing = false'}, ball_more_than_5_seconds_in_middle, System.interruptions)
 
 ///TODO: test for second half
-first_half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116'}, only_valid_goals)
+first_half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116'}, interruption_after_goal)
 goal_time_first_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116)/60000000000000', 'goal_time']]}, first_half_time_distinction)
-second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, only_valid_goals)
+second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, interruption_after_goal)
 goal_time_second_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116 - 52934355197938)/60000000000000', 'goal_time']]}, second_half_time_distinction)
 
 merge_half_time_goals = MERGE(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
