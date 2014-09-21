@@ -20,6 +20,7 @@ add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time'
 ///TODO: there is no data with zero acceleration or speed, minimum accel around 2103465 mikrometer/s^2 => 2,1 m/s^2, avg is 13 m/s^2
 aggregating_goal_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp']]}, add_last_goal_time)
 ball_more_than_5_seconds_in_middle = SELECT({predicate = 'start_timestamp - end_timestamp > 1000000000000'}, aggregating_goal_data)
+///TODO: for examples goal.csv and goal_2.csv the ball is 0,1s in this area, what to do?
 interruption_after_goal = join({predicate = 'goal_time < start_interruption && end_timestamp > start_interruption && playing = false'}, ball_more_than_5_seconds_in_middle, System.interruptions)
 
 ///TODO: test for second half
