@@ -30,6 +30,8 @@ goal_time_first_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753
 second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, interruption_after_goal)
 goal_time_second_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116 - 52934355197938)/60000000000000', 'goal_time']]}, second_half_time_distinction)
 
+///TODO: replace by the right operator to order the entries directly by the timestamp
 merge_half_time_goals = MERGE(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
 
+///TODO: really needed? further investigation necessary
 goals_only_once = CHANGEDETECT({ATTR = ['goal_time'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, merge_half_time_goals)
