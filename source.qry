@@ -1,9 +1,9 @@
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME \one_ball_sample.csv
-#DEFINE METAFILENAME \EntitySensorMapping.csv
-#DEFINE IRFILENAME \GameInterruptions.csv
-#DEFINE GOALFILENAME \GoalMapping.csv
+#DEFINE DATAFILENAME \test.csv
+#DEFINE METAFILENAME \data\EntitySensorMapping.csv
+#DEFINE IRFILENAME \data\GameInterruptions.csv
+#DEFINE GOALFILENAME \data\GoalMapping.csv
 
 
 #RUNQUERY
