@@ -16,7 +16,7 @@ all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all
 
 ///TODO: does not work for goal_2.csv
 ///TODO: detect middle area by game kick-off position data
-only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= 0 && sens_y <= 0) || (sens_y - 1000 <= 0 && sens_y >= 0))'}, all_goals_without_sid, only_balls)
+only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= -2540 && sens_y <= -2540) || (sens_y - 1000 <= -2540 && sens_y >= -2540))'}, all_goals_without_sid, only_balls)
 
 add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time', 'last_goal_time'], 'timestamp', 'accel']}, only_valid_goals)
 ///TODO: there is no data with zero acceleration or speed, minimum accel around 2103465 mikrometer/s^2 => 2,1 m/s^2, avg is 13 m/s^2
@@ -33,8 +33,7 @@ goal_time_first_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753
 second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, interruption_after_goal)
 goal_time_second_half_in_match_minutes = MAP({expressions = [['(goal_time - 10753295594424116 - 52934355197938)/60000000000000', 'goal_time']]}, second_half_time_distinction)
 
-///TODO: replace by the right operator to order the entries directly by the timestamp
-merge_half_time_goals = MERGE(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
+merge_half_time_goals = UNION(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
 
 ///TODO: really needed? further investigation necessary
 goals_only_once = CHANGEDETECT({ATTR = ['goal_time'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, merge_half_time_goals)
