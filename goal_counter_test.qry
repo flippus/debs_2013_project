@@ -1,0 +1,17 @@
+#PARSER PQL
+#DROPALLQUERIES
+#QUERY
+
+playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
+
+joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
+
+only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
+
+///TODO: does not work for goal_2.csv
+///TODO: detect middle area by game kick-off position data
+aggregating_goal_data = COALESCE({predicate='(sens_y + 1000 >= -2540 && sens_y <= -2540) || (sens_y - 1000 <= -2540 && sens_y >= -2540)', AGGREGATIONS=[['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['last','sens_y','sens_y']]}, only_balls)
+
+///select1 = SELECT({predicate = '(sens_y + 1000 >= -2540 && sens_y <= -2540) || (sens_y - 1000 <= -2540 && sens_y >= -2540)'}, aggregating_goal_data)
+
+///map_parameters_for_computation = STATEMAP({expressions = [['(end_timestamp - start_timestamp)/1000000000000', 'duration']]}, select1)

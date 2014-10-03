@@ -1,0 +1,23 @@
+#PARSER PQL
+#DROPALLQUERIES
+#QUERY
+
+playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
+
+joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
+
+only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
+ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < -33968 && sens_y > -35000 && sens_z < 2440.0) || (sens_x > 22578 && sens_x < 29898 && sens_y > 33941 && sens_y < 35000 && sens_z < 2440.0)'}, only_balls)
+
+interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
+
+all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 'goal_time', 'timestamp'], ['last', 'timestamp', 'search_time', 'timestamp']]}, interruption_join)
+all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all_goals)
+
+///TODO: detect middle area by game kick-off position data
+///TODO: try to get the following work: timestamp >= search_time &&
+only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 1000 >= -2540 && sens_y <= -2540) || (sens_y - 1000 <= -2540 && sens_y >= -2540))'}, all_goals_without_sid, only_balls)
+
+aggregating_goal_data = COALESCE({predicate='search_time <= timestamp', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','search_time','search_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['avg','sens_y','sens_y_avg']]}, only_valid_goals)
+
+map_parameters_for_computation = STATEMAP({expressions = ['goal_time', 'search_time', ['(end_timestamp - start_timestamp)/1000000000000', 'duration'], 'sens_y_avg']}, aggregating_goal_data)
