@@ -2,19 +2,24 @@
 #DROPALLQUERIES
 #QUERY
 
-playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
-
-joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
+joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, soccergame)
 
 only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
 
 streams_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, only_balls, System.interruptions)
 
-map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing', 'sens_x', 'sens_y']}, streams_join)
+map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing', 'sens_x', 'sens_y', 'timestamp']}, streams_join)
 
 ballInFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, map_parameters_for_computation)
 ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballInFieldX)
 
 no_interrupts = SELECT({predicate = 'playing = true'}, ballInFieldXY)
 
-result = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'ball_time', 'timestamp']]}, no_interrupts)
+aggregations = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'ball_time', 'timestamp'], ['LAST', 'timestamp', 'current_minute']]}, no_interrupts)
+
+first_half_time_distinction = SELECT({predicate = 'current_minute < 12557295594424116'}, aggregations)
+time_first_half_in_match_minutes = MAP({expressions = ['sensorid', 'ball_time', ['(current_minute - 10753295594424116)/60000000000000', 'current_minute']]}, first_half_time_distinction)
+second_half_time_distinction = SELECT({predicate = 'current_minute > 13086639146403495'}, aggregations)
+time_second_half_in_match_minutes = MAP({expressions = ['sensorid', 'ball_time', ['(current_minute - 10753295594424116 - 529343551979379)/60000000000000', 'current_minute']]}, second_half_time_distinction)
+
+merge_half_time_goals = UNION(time_first_half_in_match_minutes, time_second_half_in_match_minutes)
