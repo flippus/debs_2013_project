@@ -47,8 +47,9 @@ preparing_data_for_sufficient_acceleration = COALESCE({predicate='((sens_y + 100
 sufficient_acceleration = SELECT({predicate = '((acceleration_avg/1000000)/((end_timestamp - ball_hit_timestamp)/1000000000000)) >= 55'}, preparing_data_for_sufficient_acceleration)
 
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
-///max of a boolean value is true, min is false
-preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 100 >= last_accel || accel - 100 <= last_accel)', AGGREGATIONS=[['first','sid','sensorid'], ['first','sens_x','sens_x'], ['first','sens_x','sens_x'], ['first','ball_hit_timestamp','ball_hit_timestamp2'], ['avg', 'sens_speed', 'sens_speed'], ['avg', 'speed_x', 'speed_x'], ['avg', 'speed_y', 'speed_y']]}, all_possible_goal_shots_with_events)
+preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 100 >= last_accel || accel - 100 <= last_accel)', AGGREGATIONS=[['first','sid','sensorid'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','ball_hit_timestamp','ball_hit_timestamp2'], ['avg', 'sens_speed', 'sens_speed'], ['avg', 'speed_x', 'speed_x'], ['avg', 'speed_y', 'speed_y']]}, all_possible_goal_shots_with_events)
 reached_goal_area = SELECT({predicate = '((26220 - sens_x)/((sens_speed * speed_x)/1000))/1000 <= 1,5 && (-33968 - sens_y)/((sens_speed * speed_y)/ 1000))/1000 <= 1,5'}, preparing_data_for_reached_goal_area)
+reached_goal_area_projection = PROJECT({attributes = ['sensorid', 'ball_hit_timestamp2']}, reached_goal_area)
 
-goal_shots = join({predicate = 'ball_hit_timestamp = ball_hit_timestamp2 && sensorid = sid'}, sufficient_acceleration, reached_goal_area)
+
+goal_shots = join({predicate = 'ball_hit_timestamp = ball_hit_timestamp2 && sensorid = sid'}, sufficient_acceleration, reached_goal_area_projection)
