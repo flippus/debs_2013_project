@@ -27,5 +27,7 @@ goal_time_second_half_in_match_minutes = MAP({expressions = [['(goal_time - 1075
 
 merge_half_time_goals = UNION(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
 
+///TODO: goal time in german; converting to integer + 1
+
 ///TODO: really needed? further investigation necessary
 goals_only_once = CHANGEDETECT({ATTR = ['goal_time'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, merge_half_time_goals)
