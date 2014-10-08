@@ -11,19 +11,27 @@ ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < 
 
 interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
 
-all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 'goal_time', 'timestamp'], ['last', 'timestamp', 'search_time', 'timestamp']]}, interruption_join)
-all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time']}, all_goals)
+all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 'goal_time', 'timestamp'], ['last', 'timestamp', 'search_time', 'timestamp'], ['first', 'sens_y', 'side']]}, interruption_join)
+all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time', 'side']}, all_goals)
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 5000 >= -2540 && sens_y <= -2540) || (sens_y - 5000 <= -2540 && sens_y >= -2540))'}, all_goals_without_sid, only_balls)
 
-add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time', 'last_goal_time'], 'timestamp', 'accel']}, only_valid_goals)
-aggregating_goal_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp']]}, add_last_goal_time)
+add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time', 'last_goal_time'], 'timestamp', 'accel', 'side']}, only_valid_goals)
+aggregating_goal_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, add_last_goal_time)
 ball_in_middle = SELECT({predicate = 'end_timestamp - start_timestamp > 10000000000'}, aggregating_goal_data)
 
 first_half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116'}, ball_in_middle)
-goal_time_first_half_in_match_minutes = MAP({expressions = [['ToInteger((goal_time - 10753295594424116)/60000000000000) + 1', 'Spielminute des Tores']]}, first_half_time_distinction)
+team_one_goal_one = SELECT({predicate = 'side > 0'}, first_half_time_distinction)
+goal_time_first_half_in_match_minutes_one = MAP({expressions = [['ToInteger((goal_time - 10753295594424116)/60000000000000) + 1', 'Spielminute des Tores'], ['Gelb', 'Team']]}, team_one_goal_one)
+team_two_goal_one = SELECT({predicate = 'side < 0'}, first_half_time_distinction)
+goal_time_first_half_in_match_minutes_two = MAP({expressions = [['ToInteger((goal_time - 10753295594424116)/60000000000000) + 1', 'Spielminute des Tores'], ['Rot', 'Team']]}, team_two_goal_one)
+goal_time_first_half_in_match_minutes = UNION(goal_time_first_half_in_match_minutes_one, goal_time_first_half_in_match_minutes_two)
 second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, ball_in_middle)
-goal_time_second_half_in_match_minutes = MAP({expressions = [['ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1', 'Spielminute des Tores']]}, second_half_time_distinction)
+team_one_goal_two = SELECT({predicate = 'side > 0'}, second_half_time_distinction)
+goal_time_second_half_in_match_minutes_one = MAP({expressions = [['ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1', 'Spielminute des Tores'], ['Rot', 'Team']]}, team_one_goal_two)
+team_two_goal_two = SELECT({predicate = 'side < 0'}, second_half_time_distinction)
+goal_time_second_half_in_match_minutes_two = MAP({expressions = [['ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1', 'Spielminute des Tores'], ['Gelb', 'Team']]}, team_two_goal_two)
+goal_time_second_half_in_match_minutes = UNION(goal_time_second_half_in_match_minutes_one, goal_time_second_half_in_match_minutes_two)
 
 merge_half_time_goals = UNION(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
 
