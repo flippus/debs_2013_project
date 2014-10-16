@@ -1,5 +1,6 @@
 #PARSER PQL
 #DROPALLQUERIES
+#DOREWRITE false
 #QUERY
 
 matchstart = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
