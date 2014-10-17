@@ -52,5 +52,9 @@ preparing_data_for_reached_goal_area = COALESCE({predicate='(accel + 100 >= last
 reached_goal_area = SELECT({predicate = '((26229 - sens_x)/((sens_speed * speed_x)/1000))/1000 <= 1,5 && ((-33968 - sens_y)/((sens_speed * speed_y)/ 1000))/1000 <= 1,5) || (33941 - sens_y)/((sens_speed * speed_y)/ 1000))/1000 <= 1,5))'}, preparing_data_for_reached_goal_area)
 reached_goal_area_projection = PROJECT({attributes = ['sensorid', 'ball_hit_timestamp2']}, reached_goal_area)
 
-
 goal_shots = join({predicate = 'ball_hit_timestamp = ball_hit_timestamp2 && sensorid = sid'}, sufficient_acceleration, reached_goal_area_projection)
+
+improve_result_presentation = PROJECT({attributes = ['ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id']}, goal_shots)
+improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'Torschusszeit'], 'sens_x', 'sens_y', 'name', 'player_id']}, improve_result_presentation)
+///TODO: avoid many prints of one event
+goals_shot_result = CHANGEDETECT({ATTR = ['Torschusszeit'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, improve_time_representation)
