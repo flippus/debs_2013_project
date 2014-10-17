@@ -3,6 +3,7 @@
 #DOREWRITE false
 #QUERY
 
+///TODO: save team_id till end
 matchstart = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
 
 included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, matchstart)
