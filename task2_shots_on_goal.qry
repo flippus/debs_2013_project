@@ -5,7 +5,6 @@
 
 five_minute_window = TIMEWINDOW({size = 300000000000000}, soccergame)
 
-///TODO: save team_id till end
 included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, five_minute_window)
 
 included_interruptions = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, included_metadata, System.interruptions)
@@ -37,14 +36,14 @@ ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 's
 ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end && team_id = team'}, ball_player_projection, System.goals)
 only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (side = "left" && sens_y < 0)'}, ball_with_halfsides)
 
-ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
-ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
+ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
+ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
 
 all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, previous_ball_event_sid)
 
 ///select where acceleration >= 55 m/s^2
-preparing_data_for_sufficient_acceleration = COALESCE({predicate='((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['avg','accel','acceleration_avg'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sensor_y','sensor_y'], ['first','name', 'name'], ['first','player_id', 'player_id']]}, all_possible_goal_shots_with_events)
-only_data_in_range = SELECT({predicate = '((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && end_timestamp - ball_hit_timestamp > 0'}, preparing_data_for_sufficient_acceleration)
+preparing_data_for_sufficient_acceleration = COALESCE({predicate='((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['avg','accel','acceleration_avg'], ['first','team_id','team_id'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sensor_y','sensor_y'], ['first','name', 'name'], ['first','player_id', 'player_id']]}, all_possible_goal_shots_with_events)
+only_data_in_range = SELECT({predicate = '((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))'}, preparing_data_for_sufficient_acceleration)
 ///TODO: check for computation errors
 sufficient_acceleration = SELECT({predicate = '((acceleration_avg/1000000)/((end_timestamp - ball_hit_timestamp)/1000000000000)^2) >= 55'}, only_data_in_range)
 
@@ -56,7 +55,7 @@ reached_goal_area_projection = PROJECT({attributes = ['sensorid', 'ball_hit_time
 
 goal_shots = join({predicate = 'ball_hit_timestamp = ball_hit_timestamp2 && sensorid = sid'}, sufficient_acceleration, reached_goal_area_projection)
 
-improve_result_presentation = PROJECT({attributes = ['ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id']}, goal_shots)
-improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'Torschusszeit'], 'sens_x', 'sens_y', 'name', 'player_id']}, improve_result_presentation)
+improve_result_presentation = PROJECT({attributes = ['ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id']}, goal_shots)
+improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'Torschusszeit'], 'sens_x', 'sens_y', 'name', 'player_id', 'team_id']}, improve_result_presentation)
 ///TODO: avoid many prints of one event
 goals_shot_result = CHANGEDETECT({ATTR = ['Torschusszeit'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, improve_time_representation)
