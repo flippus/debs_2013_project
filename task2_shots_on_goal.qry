@@ -3,10 +3,10 @@
 #DOREWRITE false
 #QUERY
 
-///TODO: save team_id till end
-matchstart = SELECT({predicate = 'timestamp > 10753478619424000'}, soccergame)
+five_minute_window = TIMEWINDOW({size = 300000000000000}, soccergame)
 
-included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, matchstart)
+///TODO: save team_id till end
+included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, five_minute_window)
 
 included_interruptions = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, included_metadata, System.interruptions)
 
