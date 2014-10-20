@@ -44,8 +44,7 @@ all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 
 ///select where acceleration >= 55 m/s^2
 preparing_data_for_sufficient_acceleration = COALESCE({predicate='((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['avg','accel','acceleration_avg'], ['first','team_id','team_id'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sensor_y','sensor_y'], ['first','name', 'name'], ['first','player_id', 'player_id']]}, all_possible_goal_shots_with_events)
 only_data_in_range = SELECT({predicate = '((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))'}, preparing_data_for_sufficient_acceleration)
-///TODO: check for computation errors
-sufficient_acceleration = SELECT({predicate = '((acceleration_avg/1000000)/((end_timestamp - ball_hit_timestamp)/1000000000000)^2) >= 55'}, only_data_in_range)
+sufficient_acceleration = SELECT({predicate = '(acceleration_avg/1000000) >= 55'}, only_data_in_range)
 
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
 ///TODO: check for computation errors
