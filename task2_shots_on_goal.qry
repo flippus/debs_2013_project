@@ -42,6 +42,7 @@ ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'tea
 all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, previous_ball_event_sid)
 
 ///select where acceleration >= 55 m/s^2
+///TODO: move this check to beginning
 preparing_data_for_sufficient_acceleration = COALESCE({predicate='((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))', AGGREGATIONS=[['first','sensorid','sid'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','timestamp','end_timestamp'], ['avg','accel','acceleration_avg'], ['first','team_id','team_id'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','sensor_y','sensor_y'], ['first','name', 'name'], ['first','player_id', 'player_id']]}, all_possible_goal_shots_with_events)
 only_data_in_range = SELECT({predicate = '((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y))'}, preparing_data_for_sufficient_acceleration)
 sufficient_acceleration = SELECT({predicate = '(acceleration_avg/1000000) >= 55'}, only_data_in_range)
