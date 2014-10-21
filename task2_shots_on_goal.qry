@@ -24,20 +24,20 @@ player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id
 player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'player_hit_timestamp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
 
 ///add the acceleration and sid values of the previous data line to the current to be able to detect changes
-previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', ['__last_1.accel', 'last_accel'], 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
+previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', ['__last_1.sens_speed', 'last_sens_speed'], ['__last_10.sens_speed', 'last10_sens_speed'], 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
 ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, previous_ball_event_sid, player_events_renaming)
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
-ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_with_player_nearby)
+ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_with_player_nearby)
 
 ///select where player shoots on opponents goal and to exclude return passes by using team_id and timestamp to identify the sides. y > 0 means left side and vice versa
 ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end && team_id = team'}, ball_player_projection, System.goals)
 only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (side = "left" && sens_y < 0)'}, ball_with_halfsides)
 
-ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
-ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
+ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
+ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
 
 all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, previous_ball_event_sid)
 
