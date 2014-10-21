@@ -57,6 +57,8 @@ reached_goal_area_projection = PROJECT({attributes = ['sensorid', 'ball_hit_time
 goal_shots = join({predicate = 'ball_hit_timestamp = ball_hit_timestamp2 && sensorid = sid'}, sufficient_acceleration, reached_goal_area_projection)
 
 improve_result_presentation = PROJECT({attributes = ['ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id']}, goal_shots)
-improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'Torschusszeit'], 'sens_x', 'sens_y', 'name', 'player_id', 'team_id']}, improve_result_presentation)
-///TODO: avoid many prints of one event
-goals_shot_result = CHANGEDETECT({ATTR = ['Torschusszeit'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, improve_time_representation)
+///TODO: add second half distinction
+improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'ball_hit_timestamp'], ['(__last_1.ball_hit_timestamp - 10753295594424116)/60000000000000', 'last_ball_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
+goals_shot_result = COALESCE({predicate='ball_hit_timestamp - last_ball_hit_timestamp <= 1 && name == last_name', AGGREGATIONS=[['first','ball_hit_timestamp','ball_hit_timestamp'], ['first','name', 'name'], ['first','player_id','player_id'], ['first','team_id','team_id'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y']]}, improve_time_representation)
+
+///TODO: negate all coalesce predicates
