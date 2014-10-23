@@ -30,7 +30,7 @@ player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'pla
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
-ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, previous_ball_event_sid, player_events_renaming)
+ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, sufficient_acceleration, player_events_renaming)
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
 ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_with_player_nearby)
 
