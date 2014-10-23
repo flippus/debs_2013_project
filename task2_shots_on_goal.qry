@@ -16,15 +16,17 @@ without_referee = SELECT({predicate = 'entity_id != 21 && sensorid != 97 && sens
 inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_referee)
 inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
-///TODO: replace both selects by one filter statement?!
 ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
 ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events)
+
+///select where acceleration >= 55 m/s^2
+last_value_of_time_for_comparison = STATEMAP({expressions = ['sid', 'timestamp', ['__last_30.timestamp', 'comparison_timestamp'], 'sens_x', 'sens_y', ['__last_30.sens_y', 'comparison_sens_y'], 'sens_z', 'sens_speed', ['__last_1.sens_speed', 'last_sens_speed'], ['__last_10.sens_speed', 'last10_sens_speed'], 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
+sufficient_acceleration = SELECT({predicate='(((sens_y - comparison_sens_y)/1000)/(((timestamp - comparison_timestamp)/1000000000000)^2)) >= 55) && timestamp > comparison_timestamp'}, last_value_of_time_for_comparison)
+///TODO: more unique results by coalesce?! take all elements by speed to aggregate them
+
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
 player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id', 'timestamp', 'sens_x', 'sens_y', 'sens_z']}, player_events)
 player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'player_hit_timestamp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
-
-///add the acceleration and sid values of the previous data line to the current to be able to detect changes
-previous_ball_event_sid = STATEMAP({expressions = ['sid', ['__last_1.sid', 'last_sid'], 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', ['__last_1.sens_speed', 'last_sens_speed'], ['__last_10.sens_speed', 'last10_sens_speed'], 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
