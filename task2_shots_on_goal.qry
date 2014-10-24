@@ -30,7 +30,7 @@ player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'pla
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
-ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, sufficient_acceleration, player_events_renaming)
+ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, sufficient_acceleration_detection, player_events_renaming)
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
 ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_with_player_nearby)
 
@@ -41,7 +41,7 @@ only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (s
 ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
 ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
 
-all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, sufficient_acceleration)
+all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, sufficient_acceleration_detection)
 
 ///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
 ///TODO: check for computation errors
