@@ -6,6 +6,9 @@ metadata_enrichment = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate(
 
 only_balls = SELECT({predicate = 'entity = "Ball"'}, metadata_enrichment)
 
+///TODO: window destroys result
+///five_minute_window = TIMEWINDOW({size = 300000000000000}, only_balls)
+
 interruptions_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption', CARD = 'MANY_ONE'}, only_balls, System.interruptions)
 
 map_parameters_for_computation = STATEMAP({expressions = ['sensorid', ['(timestamp - __last_1.timestamp)/1000000000000', 'time_diff'], 'playing', 'sens_x', 'sens_y', 'timestamp']}, interruptions_join)
