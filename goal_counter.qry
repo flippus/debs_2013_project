@@ -16,8 +16,7 @@ all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time', 'side
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 5000 >= -2540 && sens_y <= -2540) || (sens_y - 5000 <= -2540 && sens_y >= -2540))'}, all_goals_without_sid, only_balls)
 
-add_last_goal_time = STATEMAP({expressions = ['goal_time', 'timestamp', 'accel', 'side']}, only_valid_goals)
-aggregating_goal_data = AGGREGATE({group_by = ['goal_time'], AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, add_last_goal_time)
+aggregating_goal_data = AGGREGATE({group_by = ['goal_time'], AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, only_valid_goals)
 ball_in_middle = SELECT({predicate = 'end_timestamp - start_timestamp > 100000000'}, aggregating_goal_data)
 
 half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116 || goal_time > 13086639146403495'}, ball_in_middle)
