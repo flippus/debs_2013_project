@@ -20,11 +20,9 @@ add_last_goal_time = STATEMAP({expressions = ['goal_time', ['__last_1.goal_time'
 aggregating_goal_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, add_last_goal_time)
 ball_in_middle = SELECT({predicate = 'end_timestamp - start_timestamp > 10000000000'}, aggregating_goal_data)
 
-first_half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116'}, ball_in_middle)
-goal_time_first_half_in_match_minutes = MAP({expressions = [['(ToInteger((goal_time - 10753295594424116)/60000000000000) + 1)', 'Spielminute des Tores'], ['eif(side > 0, "Gelb", "Rot")', 'Team']]}, first_half_time_distinction)
-second_half_time_distinction = SELECT({predicate = 'goal_time > 13086639146403495'}, ball_in_middle)
-goal_time_second_half_in_match_minutes = MAP({expressions = [['(ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1)', 'Spielminute des Tores'], ['eif(side > 0, "Rot", "Gelb")', 'Team']]}, second_half_time_distinction )
-merge_half_time_goals = UNION(goal_time_first_half_in_match_minutes, goal_time_second_half_in_match_minutes)
+half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116 || goal_time > 13086639146403495'}, ball_in_middle)
+goal_time_in_match_minutes = MAP({expressions = [['eif(goal_time < 12557295594424116, (ToInteger((goal_time - 10753295594424116)/60000000000000) + 1), (ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1))', 'Spielminute des Tores'], ['eif((goal_time < 12557295594424116 && side > 0) || (goal_time > 13086639146403495 && side < 0), "Gelb", "Rot")', 'Team']]}, half_time_distinction)
+
 
 ///TODO: really needed? further investigation necessary
-goals_only_once = CHANGEDETECT({ATTR = ['Spielminute des Tores'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, merge_half_time_goals)
+goals_only_once = CHANGEDETECT({ATTR = ['Spielminute des Tores'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 0.0}, goal_time_in_match_minutes)
