@@ -21,7 +21,7 @@ ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 's
 
 ///select where acceleration >= 55 m/s^2
 last_value_of_time_for_comparison = STATEMAP({expressions = ['sid', 'timestamp', ['__last_30.timestamp', 'comparison_timestamp'], 'sens_x', 'sens_y', ['__last_30.sens_y', 'comparison_sens_y'], 'sens_z', 'sens_speed', ['__last_1.sens_speed', 'last_sens_speed'], ['__last_100.sens_speed', 'last100_sens_speed'], 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
-sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif((((sens_y - comparison_sens_y)/1000)/(((timestamp - comparison_timestamp)/1000000000000)^2)) >= 55, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'last_sens_speed', 'last100_sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, last_value_of_time_for_comparison)
+sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif(accel >= 55000000, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'last_sens_speed', 'last100_sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, last_value_of_time_for_comparison)
 sufficient_acceleration_detection = CHANGEDETECT({ATTR = ['accelerated'], heartbeatrate = 1000}, TIMEWINDOW({size = 1, advance = 1}, sufficient_acceleration))
 
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
