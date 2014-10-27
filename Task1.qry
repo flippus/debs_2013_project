@@ -18,8 +18,6 @@ ballInFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, ballIn
 
 no_interrupts = SELECT({predicate = 'playing = true'}, ballInFieldXY)
 
-///TODO: current_minute change and ball_time_in_seconds change differ so much
-///FIXME: ball_time_in_seconds is wrong
 aggregations = AGGREGATE({group_by = ['sensorid'], aggregations=[['SUM', 'time_diff', 'ball_time_in_seconds', 'timestamp'], ['LAST', 'timestamp', 'current_minute']]}, no_interrupts)
 
 half_time_distinction = SELECT({predicate = 'current_minute > 13086639146403495 || current_minute < 12557295594424116'}, aggregations)
