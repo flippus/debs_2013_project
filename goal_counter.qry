@@ -13,10 +13,10 @@ five_minute_window = TIMEWINDOW({size = 300000000000000}, ballInGoal)
 
 interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, five_minute_window, System.interruptions)
 
-all_goals = AGGREGATE({group_by = ['sid'], aggregations=[['first', 'timestamp', 'goal_time', 'timestamp'], ['last', 'timestamp', 'search_time', 'timestamp'], ['first', 'sens_y', 'side']]}, interruption_join)
-all_goals_without_sid = PROJECT({attributes = ['goal_time', 'search_time', 'side']}, all_goals)
+add_last_goal_time = STATEMAP({expressions = [['timestamp', 'goal_time'], ['__last_1.timestamp', 'last_goal_time'], ['sens_y', 'side']]}, interruption_join)
+aggregating_ball_in_goal_data = COALESCE({predicate='goal_time >= last_goal_time + 60000000000000', AGGREGATIONS=[['first','goal_time','goal_time'], ['last','goal_time','search_time'], ['first', 'side', 'side']]}, add_last_goal_time)
 
-only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 5000 >= -2540 && sens_y <= -2540) || (sens_y - 5000 <= -2540 && sens_y >= -2540))'}, all_goals_without_sid, only_balls)
+only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 5000 >= -2540 && sens_y <= -2540) || (sens_y - 5000 <= -2540 && sens_y >= -2540))'}, aggregating_ball_in_goal_data, only_balls)
 
 aggregating_goal_data = AGGREGATE({group_by = ['goal_time'], AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, only_valid_goals)
 ball_in_middle = SELECT({predicate = 'end_timestamp - start_timestamp > 100000000'}, aggregating_goal_data)
