@@ -17,11 +17,11 @@ inFieldX = SELECT({predicate = 'sens_x > -50 && sens_x < 52489'}, without_refere
 inFieldXY = SELECT({predicate = 'sens_y > -33939 && sens_y < 33965'}, inFieldX)
 
 ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
-ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events)
+ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'accel']}, ball_events)
 
 ///select where acceleration >= 55 m/s^2
-last_value_of_time_for_comparison = STATEMAP({expressions = ['sid', 'timestamp', ['__last_30.timestamp', 'comparison_timestamp'], 'sens_x', 'sens_y', ['__last_30.sens_y', 'comparison_sens_y'], 'sens_z', 'sens_speed', ['__last_1.sens_speed', 'last_sens_speed'], ['__last_100.sens_speed', 'last100_sens_speed'], 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, ball_events_projection)
-sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif(accel >= 55000000, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z', 'sens_speed', 'last_sens_speed', 'last100_sens_speed', 'accel', 'speed_x', 'speed_y', 'speed_z', 'accel_x', 'accel_y', 'accel_z']}, last_value_of_time_for_comparison)
+last_value_of_time_for_comparison = STATEMAP({expressions = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'accel']}, ball_events_projection)
+sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif(accel >= 55000000, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z']}, last_value_of_time_for_comparison)
 sufficient_acceleration_detection = CHANGEDETECT({ATTR = ['accelerated'], heartbeatrate = 1000}, TIMEWINDOW({size = 1, advance = 1}, sufficient_acceleration))
 
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
@@ -30,32 +30,22 @@ player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'pla
 
 ///detect ball shooter
 ///ball and player are in same area with 1m tolerance and at same time with 1ms tolerance
-ball_with_player_at_same_timestamp = join({predicate = '(timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)', CARD = 'ONE_MANY'}, sufficient_acceleration_detection, player_events_renaming)
+ball_with_player_at_same_timestamp = join({predicate = '((timestamp + 1000000000 >= player_hit_timestamp && timestamp <= player_hit_timestamp) || (timestamp - 1000000000 <= player_hit_timestamp && timestamp >= player_hit_timestamp)) && accelerated', CARD = 'ONE_MANY'}, sufficient_acceleration_detection, player_events_renaming)
 ball_with_player_nearby = SELECT({predicate = '((sens_x + 1000 >= sensor_x && sens_x <= sensor_x) || (sens_x - 1000 <= sensor_x && sens_x >= sensor_x)) && ((sens_y + 1000 >= sensor_y && sens_y <= sensor_y) || (sens_y - 1000 <= sensor_y && sens_y >= sensor_y)) && ((sens_z + 1000 >= sensor_z && sens_z <= sensor_z) || (sens_z - 1000 <= sensor_z && sens_z >= sensor_z))'}, ball_with_player_at_same_timestamp)
-ball_player_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_with_player_nearby)
+ball_player_projection = PROJECT({attributes = ['sid', 'player_hit_timestamp', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'name', 'accelerated', 'player_id', 'team_id', 'sensor_x', 'sensor_y', 'sensor_z']}, ball_with_player_nearby)
+last_value_of_player_for_comparison = STATEMAP({expressions = ['timestamp', 'accelerated', 'player_hit_timestamp', 'sens_x', 'sens_y', 'sens_z', 'sensor_x', 'sensor_y', 'sensor_z', 'player_id', 'name', 'team_id', ['DEBSDistance(sensor_x, sensor_y, sensor_z,sens_x, sens_y, sens_z)', 'distance'], ['__last_1.player_id','last_player_id']]}, ball_player_projection)
+minimum_distance = AGGREGATE({aggregations=[['min', 'distance', 'minimum_distance', 'integer']]}, last_value_of_player_for_comparison)
+ball_shoter_detection = join({predicate = 'distance = minimum_distance'}, last_value_of_player_for_comparison, minimum_distance)
+
+accelerated_and_only_one_meter_distance = PREDICATEWINDOW({start = RelationalPredicate('distance <= 1000'), end = RelationalPredicate('distance > 1000')}, ball_shoter_detection)
+one_meter_value_aggregation = COALESCE({predicate = RelationalPredicate('!(last_player_id = player_id && distance < 1000)'), aggregations = [['first', 'sens_x', 'first_sens_x', 'integer'], ['first', 'sens_y', 'first_sens_y', 'integer'], ['last', 'sens_x', 'last_sens_x', 'integer'], ['last', 'sens_y', 'last_sens_y', 'integer'], ['first', 'player_hit_timestamp', 'player_hit_timestamp', 'starttimestamp'], ['last', 'timestamp', 'last_timestamp', 'starttimestamp'], ['last', 'distance', 'last_distance', 'integer'], ['first', 'player_id', 'player_id', 'integer'], ['first', 'team_id', 'team_id', 'integer'], ['first', 'name', 'name', 'integer'], ['first', 'accelerated', 'accelerated', 'boolean']]}, accelerated_and_only_one_meter_distance)
+
+goal_shot_detection = STATEMAP({expressions = ['player_hit_timestamp', 'last_timestamp', 'accelerated', 'name', 'player_id', 'team_id', 'last_sens_x', 'last_sens_y', 'first_sens_x', 'first_sens_y', ['IsShotOnGoal(first_sens_x, first_sens_y, last_sens_x, last_sens_y, player_hit_timestamp, last_timestamp)', 'shot_on_goal']]}, one_meter_value_aggregation)
 
 ///select where player shoots on opponents goal and to exclude return passes by using team_id and timestamp to identify the sides. y > 0 means left side and vice versa
-ball_with_halfsides = join({predicate = 'timestamp >= halftime_start && timestamp <= halftime_end && team_id = team'}, ball_player_projection, System.goals)
-only_opponents_shots = SELECT({predicate = '(side = "right" && sens_y > 0) || (side = "left" && sens_y < 0)'}, ball_with_halfsides)
+ball_with_halfsides = join({predicate = 'player_hit_timestamp >= halftime_start && player_hit_timestamp <= halftime_end && team_id = team'}, goal_shot_detection, System.goals)
+only_opponents_shots = SELECT({predicate = '(side = "right" && first_sens_y > 0) || (side = "left" && first_sens_y < 0)'}, ball_with_halfsides)
 
-ball_player_remove_useless_attributes = PROJECT({attributes = ['sid', 'timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, only_opponents_shots)
-ball_player_renaming = RENAME({aliases = ['sensorid', 'ball_hit_timestamp', 'team_id', 'sens_x', 'sens_y', 'name', 'player_id', 'sens_speed', 'last_sens_speed', 'last10_sens_speed', 'speed_x', 'speed_y', 'sensor_x', 'sensor_y']}, ball_player_remove_useless_attributes)
-
-all_possible_goal_shots_with_events = join({predicate = 'timestamp + 1500000000 >= ball_hit_timestamp && sensorid = sid'}, ball_player_renaming, sufficient_acceleration_detection)
-
-///aggregate the values required for the goal shot computation, like acceleration and events. Save the other values by using the first statement which are required for data presentation and further computation.
-///TODO: check for computation errors
-///TODO: (sens_speed * speed_l)/10^3 oder 10^6
-///TODO: less random speed change values
-preparing_data_for_reached_goal_area = COALESCE({predicate='sens_speed - 1000000 <= last_sens_speed && sens_speed - 2000000 <= last10_sens_speed', AGGREGATIONS=[['first','sid','sensorid'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y'], ['first','ball_hit_timestamp','ball_hit_timestamp'], ['last','ball_hit_timestamp','ball_hit_timestamp2'], ['first','name','name'], ['first','player_id','player_id'], ['first','team_id','team_id'], ['avg', 'sens_speed', 'sens_speed'], ['avg', 'speed_x', 'speed_x'], ['avg', 'speed_y', 'speed_y']]}, all_possible_goal_shots_with_events)
-reached_goal_area = SELECT({predicate = '((26229 - sens_x)/((sens_speed * speed_x)/10000000))/1000 <= 1,5 && (((-33968 - sens_y)/((sens_speed * speed_y)/10000000))/1000 <= 1,5 || ((33941 - sens_y)/((sens_speed * speed_y)/10000000))/1000 <= 1,5) && ((((26229 - sens_x)/((sens_speed * speed_x)/10000000))/1000 = (-33968 - sens_y)/((sens_speed * speed_y)/10000000))/1000 || ((26229 - sens_x)/((sens_speed * speed_x)/10000000))/1000 = ((33941 - sens_y)/((sens_speed * speed_y)/10000000))/1000)'}, preparing_data_for_reached_goal_area)
-
-improve_result_presentation = PROJECT({attributes = ['ball_hit_timestamp', 'sens_x', 'sens_y', 'name', 'player_id', 'team_id']}, reached_goal_area)
-///TODO: add second half distinction
-improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'ball_hit_timestamp'], ['(__last_1.ball_hit_timestamp - 10753295594424116)/60000000000000', 'last_ball_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
-goals_shot_result = COALESCE({predicate='ball_hit_timestamp - last_ball_hit_timestamp <= 1 && name = last_name', AGGREGATIONS=[['first','ball_hit_timestamp','ball_hit_timestamp'], ['first','last_ball_hit_timestamp','last_ball_hit_timestamp'], ['first','name', 'name'], ['first','last_name', 'last_name'], ['first','player_id','player_id'], ['first','team_id','team_id'], ['first','sens_x','sens_x'], ['first','sens_y','sens_y']]}, improve_time_representation)
-
-goals_shot_result_selection = SELECT({predicate = 'ball_hit_timestamp - last_ball_hit_timestamp <= 1 && name = last_name'}, goals_shot_result)
-result = PROJECT({attributes = ['ball_hit_timestamp', 'name', 'team_id', 'sens_x', 'sens_y']}, goals_shot_result_selection)
-
-///TODO: negate all coalesce predicates
+improve_result_presentation = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id', 'shot_on_goal']}, only_opponents_shots)
+//////TODO: add second half distinction
+///improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'ball_hit_timestamp'], ['(__last_1.ball_hit_timestamp - 10753295594424116)/60000000000000', 'last_ball_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
