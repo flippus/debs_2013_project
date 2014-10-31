@@ -6,13 +6,12 @@ playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 148
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)
 
-only_balls = SELECT({predicate = 'entity = "Ball"'}, joinout)
+five_minute_window = TIMEWINDOW({size = 60000000000000}, joinout)
+
+only_balls = SELECT({predicate = 'entity = "Ball"'}, five_minute_window)
 ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < -33968 && sens_y > -35000 && sens_z < 2440.0) || (sens_x > 22578 && sens_x < 29898 && sens_y > 33941 && sens_y < 35000 && sens_z < 2440.0)'}, only_balls)
 
-///TODO: java.lang.outOfMemoryError: GC overhead limit exceeded
-five_minute_window = TIMEWINDOW({size = 300000000000000}, ballInGoal)
-
-interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, five_minute_window, System.interruptions)
+interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
 
 add_last_goal_time = STATEMAP({expressions = [['timestamp', 'goal_time'], ['__last_1.timestamp', 'last_goal_time'], ['sens_y', 'side']]}, interruption_join)
 aggregating_ball_in_goal_data = COALESCE({predicate='goal_time >= last_goal_time + 60000000000000', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','last_goal_time','last_goal_time'], ['last','goal_time','search_time'], ['first', 'side', 'side']]}, add_last_goal_time)
