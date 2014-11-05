@@ -46,6 +46,6 @@ goal_shot_detection = STATEMAP({expressions = ['player_hit_timestamp', 'last_tim
 ball_with_halfsides = join({predicate = 'player_hit_timestamp >= halftime_start && player_hit_timestamp <= halftime_end && team_id = team'}, goal_shot_detection, System.goals)
 only_opponents_shots = SELECT({predicate = '(side = "right" && first_sens_y > 0) || (side = "left" && first_sens_y < 0)'}, ball_with_halfsides)
 
-improve_result_presentation = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id', 'shot_on_goal']}, only_opponents_shots)
+///improve_result_presentation = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id', 'shot_on_goal']}, only_opponents_shots)
 //////TODO: add second half distinction
-///improve_time_representation = STATEMAP({expressions = [['(ball_hit_timestamp - 10753295594424116)/60000000000000', 'ball_hit_timestamp'], ['(__last_1.ball_hit_timestamp - 10753295594424116)/60000000000000', 'last_ball_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
+///improve_time_representation = STATEMAP({expressions = [['(player_hit_timestamp - 10753295594424116)/60000000000000', 'player_hit_timestamp'], ['(__last_1.player_hit_timestamp - 10753295594424116)/60000000000000', 'last_player_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
