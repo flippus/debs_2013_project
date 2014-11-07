@@ -18,8 +18,8 @@ aggregating_ball_in_goal_data = COALESCE({predicate='goal_time >= last_goal_time
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 12000 >= -2540 && sens_y <= -2540) || (sens_y - 12000 <= -2540 && sens_y >= -2540))'}, aggregating_ball_in_goal_data, only_balls)
 
-aggregating_ball_in_middle_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','timestamp','start_timestamp'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, only_valid_goals)
-ball_in_middle = SELECT({predicate = 'end_timestamp - start_timestamp > 100000000'}, aggregating_ball_in_middle_data)
+aggregating_ball_in_middle_data = COALESCE({predicate='goal_time = last_goal_time', AGGREGATIONS=[['first','goal_time','goal_time'], ['last','timestamp','end_timestamp'], ['first', 'side', 'side']]}, only_valid_goals)
+ball_in_middle = SELECT({predicate = 'end_timestamp - goal_time > 100000000'}, aggregating_ball_in_middle_data)
 
 half_time_distinction = SELECT({predicate = 'goal_time < 12557295594424116 || goal_time > 13086639146403495'}, ball_in_middle)
 goal_time_in_match_minutes = MAP({expressions = [['eif(goal_time < 12557295594424116, (ToInteger((goal_time - 10753295594424116)/60000000000000) + 1), (ToInteger((goal_time - 10753295594424116 - 529343551979379)/60000000000000) + 1))', 'Spielminute des Tores'], ['eif((goal_time < 12557295594424116 && side > 0) || (goal_time > 13086639146403495 && side < 0), "Gelb", "Rot")', 'Team']]}, half_time_distinction)
