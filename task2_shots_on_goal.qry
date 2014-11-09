@@ -43,11 +43,12 @@ all_possible_goal_shots_with_events = join({predicate = 'player_hit_timestamp + 
 last_value_of_hit_timestamp_for_comparison = STATEMAP({expressions = ['timestamp', 'player_hit_timestamp', ['__last_1.player_hit_timestamp', 'last_player_hit_timestamp'], 'sens_x', 'sens_y', 'sensor_x', 'sensor_y', 'player_id', 'name', 'team_id']}, all_possible_goal_shots_with_events)
 preparing_data_for_reached_goal_area = COALESCE({predicate='!(player_hit_timestamp = last_player_hit_timestamp)', AGGREGATIONS=[['first','sensor_x','first_sens_x'], ['first','sensor_y','first_sens_y'], ['last','sens_x','last_sens_x'], ['last','sens_y','last_sens_y'], ['first','player_hit_timestamp','player_hit_timestamp'], ['last','timestamp','last_timestamp'], ['first','name','name'], ['first','player_id','player_id'], ['first','team_id','team_id']]}, last_value_of_hit_timestamp_for_comparison)
 goal_shot_detection = STATEMAP({expressions = ['player_hit_timestamp', 'last_timestamp', 'name', 'player_id', 'team_id', 'last_sens_x', 'last_sens_y', 'first_sens_x', 'first_sens_y', ['IsShotOnGoal(first_sens_x, first_sens_y, last_sens_x, last_sens_y, player_hit_timestamp, last_timestamp)', 'shot_on_goal']]}, preparing_data_for_reached_goal_area)
+only_real_goalshots = SELECT({predicate = 'shot_on_goal != 0'}, goal_shot_detection)
 
 ///select where player shoots on opponents goal and to exclude return passes by using team_id and timestamp to identify the sides. y > 0 means left side and vice versa
-ball_with_halfsides = join({predicate = 'player_hit_timestamp >= halftime_start && player_hit_timestamp <= halftime_end && team_id = team'}, goal_shot_detection, System.goals)
+ball_with_halfsides = join({predicate = 'player_hit_timestamp >= halftime_start && player_hit_timestamp <= halftime_end && team_id = team'}, only_real_goalshots, System.goals)
 only_opponents_shots = SELECT({predicate = '(side = "right" && first_sens_y > 0) || (side = "left" && first_sens_y < 0)'}, ball_with_halfsides)
 
-///improve_result_presentation = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id', 'shot_on_goal']}, only_opponents_shots)
+reduce_result_attributes = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id']}, only_opponents_shots)
 //////TODO: add second half distinction
 ///improve_time_representation = STATEMAP({expressions = [['(player_hit_timestamp - 10753295594424116)/60000000000000', 'player_hit_timestamp'], ['(__last_1.player_hit_timestamp - 10753295594424116)/60000000000000', 'last_player_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
