@@ -50,5 +50,6 @@ ball_with_halfsides = join({predicate = 'player_hit_timestamp >= halftime_start 
 only_opponents_shots = SELECT({predicate = '(side = "right" && first_sens_y > 0) || (side = "left" && first_sens_y < 0)'}, ball_with_halfsides)
 
 reduce_result_attributes = PROJECT({attributes = ['player_hit_timestamp', 'first_sens_x', 'first_sens_y', 'name', 'player_id', 'team_id']}, only_opponents_shots)
-//////TODO: add second half distinction
-///improve_time_representation = STATEMAP({expressions = [['(player_hit_timestamp - 10753295594424116)/60000000000000', 'player_hit_timestamp'], ['(__last_1.player_hit_timestamp - 10753295594424116)/60000000000000', 'last_player_hit_timestamp'], 'name', ['__last_1.name', 'last_name'], 'player_id', 'team_id', 'sens_x', 'sens_y']}, improve_result_presentation)
+half_time_distinction = SELECT({predicate = 'player_hit_timestamp < 12557295594424116 || player_hit_timestamp > 13086639146403495'}, reduce_result_attributes)
+goals_only_once = CHANGEDETECT({ATTR = ['player_hit_timestamp'], heartbeatrate = 100, deliverFirstElement = 'true', tolerance = 100000000000.0}, half_time_distinction)
+goal_time_in_match_minutes = MAP({expressions = [['eif(player_hit_timestamp < 12557295594424116, (ToInteger((player_hit_timestamp - 10753295594424116)/60000000000000) + 1), (ToInteger((player_hit_timestamp - 10753295594424116 - 529343551979379)/60000000000000) + 1))', 'Spielminute des Torschusses'], ['first_sens_x', 'sens_x'], ['first_sens_y', 'sens_y'], 'name', 'player_id', 'team_id']}, goals_only_once)
