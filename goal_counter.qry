@@ -14,7 +14,7 @@ ballInGoal = SELECT({predicate = '(sens_x > 22560 && sens_x < 29880 && sens_y < 
 interruption_join = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing = true', CARD = 'MANY_ONE'}, ballInGoal, System.interruptions)
 
 add_last_goal_time = STATEMAP({expressions = [['timestamp', 'goal_time'], ['__last_1.timestamp', 'last_goal_time'], ['sens_y', 'side']]}, interruption_join)
-aggregating_ball_in_goal_data = COALESCE({predicate='goal_time >= last_goal_time + 60000000000000', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','last_goal_time','last_goal_time'], ['last','goal_time','search_time'], ['first', 'side', 'side']]}, add_last_goal_time)
+aggregating_ball_in_goal_data = COALESCE({predicate='goal_time >= last_goal_time + 10000000000000', AGGREGATIONS=[['first','goal_time','goal_time'], ['first','last_goal_time','last_goal_time'], ['last','goal_time','search_time'], ['first', 'side', 'side']]}, add_last_goal_time)
 
 only_valid_goals = join({predicate = 'search_time + 3000000000000 >= timestamp && ((sens_y + 12000 >= -2540 && sens_y <= -2540) || (sens_y - 12000 <= -2540 && sens_y >= -2540))'}, aggregating_ball_in_goal_data, only_balls)
 
