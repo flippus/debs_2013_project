@@ -3,9 +3,7 @@
 #DOREWRITE false
 #QUERY
 
-five_minute_window = TIMEWINDOW({size = 300000000000000}, soccergame)
-
-included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, five_minute_window)
+included_metadata = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')}, System.metadata, soccergame)
 
 included_interruptions = join({predicate = 'timestamp >= start_interruption && timestamp <= end_interruption && playing == true', CARD = 'MANY_ONE'}, included_metadata, System.interruptions)
 
