@@ -1,0 +1,6 @@
+#PARSER PQL
+#DROPALLQUERIES
+#DOREWRITE false
+#QUERY
+
+output = testinput

@@ -1,9 +1,10 @@
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME \data\goal.csv
+#DEFINE DATAFILENAME \data\goal_2.csv
 #DEFINE METAFILENAME \data\EntitySensorMapping.csv
 #DEFINE IRFILENAME \data\GameInterruptions.csv
 #DEFINE GOALFILENAME \data\GoalMapping.csv
+#DEFINE TESTINPUT \data\dashboardtestinput.csv
 
 
 #RUNQUERY
@@ -79,5 +80,24 @@ goals := ACCESS({
 	],
 	options=[
 		['filename','${PROJECTPATH}${GOALFILENAME}'],['Delimiter',';']
+	]
+})
+
+testinput := ACCESS({
+	source='testinput',
+	wrapper='GenericPull',
+	transport='file',
+	protocol='simplecsv',
+	dataHandler='tuple',
+	schema=[			
+		['time', 'integer'],
+		['x', 'integer'],
+		['y', 'integer'],
+		['name', 'string'],
+		['player_id', 'integer'],
+		['team_id', 'integer']
+	],
+	options=[
+		['filename','${PROJECTPATH}${TESTINPUT}'],['Delimiter',',']
 	]
 })
