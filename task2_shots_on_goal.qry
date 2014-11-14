@@ -18,9 +18,8 @@ ball_events = SELECT({predicate = 'entity = "Ball"'}, inFieldXY)
 ball_events_projection = PROJECT({attributes = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'accel']}, ball_events)
 
 ///select where acceleration >= 55 m/s^2
-last_value_of_time_for_comparison = STATEMAP({expressions = ['sid', 'timestamp', 'sens_x', 'sens_y', 'sens_z', 'accel']}, ball_events_projection)
-sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif(accel >= 55000000, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z']}, last_value_of_time_for_comparison)
-sufficient_acceleration_detection = CHANGEDETECT({ATTR = ['accelerated'], heartbeatrate = 1000}, TIMEWINDOW({size = 1, advance = 1}, sufficient_acceleration))
+sufficient_acceleration = MAP({expressions = ['sid', 'timestamp', ['eif(accel >= 55000000, true, false)', 'accelerated'], 'sens_x', 'sens_y', 'sens_z']}, ball_events_projection)
+sufficient_acceleration_detection = CHANGEDETECT({ATTR = ['accelerated'], heartbeatrate = 1000, deliverFirstElement = 'true'}, TIMEWINDOW({size = 1, advance = 1}, sufficient_acceleration))
 
 player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
 player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id', 'timestamp', 'sens_x', 'sens_y', 'sens_z']}, player_events)
