@@ -27,8 +27,8 @@ player_events = SELECT({predicate = 'entity != "Ball"'}, inFieldXY)
 player_events_projection = PROJECT({attributes = ['entity', 'sensorid', 'team_id', 'timestamp', 'sens_x', 'sens_y', 'sens_z']}, player_events)
 player_events_renaming = RENAME({aliases = ['name', 'player_id', 'team_id', 'player_hit_timestamp', 'sensor_x', 'sensor_y', 'sensor_z']}, player_events_projection)
 
-prepare_acceleration_metadata_manipulation = MAP({expressions = ['sid', 'timestamp', ['timestamp - 1000000000000', 'start_timestamp'], ['timestamp + 1000000000000', 'end_timestamp'], 'sens_x', 'sens_y', 'sens_z', 'accelerated']}, sufficient_acceleration_detection)
-acceleration_metadata_manipulation = Timestamp({start='start_timestamp', end = 'end_timestamp'}, prepare_acceleration_metadata_manipulation)
+///prepare_acceleration_metadata_manipulation = MAP({expressions = ['sid', 'timestamp', ['timestamp - 1000000000000', 'start_timestamp'], ['timestamp + 1000000000000', 'end_timestamp'], 'sens_x', 'sens_y', 'sens_z', 'accelerated']}, sufficient_acceleration_detection)
+///acceleration_metadata_manipulation = Timestamp({start='start_timestamp', end = 'end_timestamp'}, prepare_acceleration_metadata_manipulation)
 
 ///detect ball shooter
 ///ball and player are in same area with 0,5m tolerance and at same time with 0.1s tolerance
