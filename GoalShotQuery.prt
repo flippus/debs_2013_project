@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><DashboardPart class="de.uniol.inf.is.odysseus.rcp.dashboard.part.ppn.GoalShotDashboardPart" id="GoalShot"><Query><RunningQuery name="Map"/></Query><Custom><Setting name="Title" value="Torschüsse"/></Custom><CustomXML/><ContextMap/></DashboardPart>
