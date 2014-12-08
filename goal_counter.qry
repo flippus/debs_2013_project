@@ -2,6 +2,8 @@
 #DROPALLQUERIES
 #QUERY
 
+///@author = Philipp Neugebauer
+
 playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
 
 joinout = ENRICH({minimumSize = 42, PREDICATE = RelationalPredicate('sensorid = sid')},System.metadata, playtime)

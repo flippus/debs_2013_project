@@ -3,4 +3,6 @@
 #DOREWRITE false
 #QUERY
 
+///@author = Philipp Neugebauer
+
 output = testinput

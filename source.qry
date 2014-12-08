@@ -6,6 +6,7 @@
 #DEFINE GOALFILENAME \data\GoalMapping.csv
 #DEFINE TESTINPUT \data\dashboardtestinput.csv
 
+///@author = Philipp Neugebauer
 
 #RUNQUERY
 soccergame := ACCESS({
