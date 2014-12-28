@@ -11,11 +11,11 @@ Afterwards you can load and execute the developed queries.
 
 ### Repository Structure
 
-    |-- Project folder
-    |-- source.qry: defines all sources which can be used
-    |-- *.qry: query files which solve specific problems
-    |-- *.prt: dashboard parts using self developed visualizers
-    |--- data: includes all the data files extracted from the original 4GB file
+    |- Project folder
+    |- source.qry: defines all sources which can be used
+    |- *.qry: query files which solve specific problems
+    |- *.prt: dashboard parts using self developed visualizers
+    |-- data: includes all the data files except the 4GB soccergame data file
 
 ### License
 
