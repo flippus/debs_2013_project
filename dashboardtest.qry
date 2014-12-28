@@ -1,8 +1,7 @@
+///@author Philipp Neugebauer
 #PARSER PQL
 #DROPALLQUERIES
 #DOREWRITE false
 #QUERY
-
-///@author = Philipp Neugebauer
 
 output = testinput

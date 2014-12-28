@@ -1,9 +1,8 @@
+///@author Philipp Neugebauer
 #PARSER PQL
 #DROPALLQUERIES
 #DOREWRITE false
 #QUERY
-
-///@author = Philipp Neugebauer
 
 playtime = SELECT({predicate = 'timestamp > 10753295594424116 && timestamp < 14879639146403495'}, soccergame)
 

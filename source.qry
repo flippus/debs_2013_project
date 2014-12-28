@@ -1,12 +1,11 @@
+///@author Philipp Neugebauer
 #DROPALLSOURCES
 #PARSER PQL
-#DEFINE DATAFILENAME \data\goal_2.csv
+#DEFINE DATAFILENAME \data\full-game
 #DEFINE METAFILENAME \data\EntitySensorMapping.csv
 #DEFINE IRFILENAME \data\GameInterruptions.csv
 #DEFINE GOALFILENAME \data\GoalMapping.csv
 #DEFINE TESTINPUT \data\dashboardtestinput.csv
-
-///@author = Philipp Neugebauer
 
 #RUNQUERY
 soccergame := ACCESS({
