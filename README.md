@@ -1,4 +1,4 @@
-[Track it like Beckham-Project](http://www.uni-bamberg.de/en/mobi/studies/studies/project2014-track-it-like-beckham/)
+[Track it like Beckham-Project](https://www.uni-bamberg.de/mobi/leistungen/studium/archiv/project-2014-track-it-like-beckham/)
 ============
 
 The project was conducted in the holidays of the summer semester 2014 at the University of Bamberg.
