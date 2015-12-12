@@ -14,8 +14,10 @@ Afterwards you can load and execute the developed queries.
     |- Project folder
     |- source.qry: defines all sources which can be used
     |- *.qry: query files which solve specific problems
-    |- *.prt: dashboard parts using [self developed visualizers](https://github.com/philippneugebauer/odysseus_dashboard_plugin)
+    |- *.prt: dashboard parts using self developed visualizers
     |-- data: includes all the data files except the 4GB soccergame data file
+    
+The self developed visualizers are stored in [this repository](https://github.com/philippneugebauer/odysseus_dashboard_plugin).
 
 ### License
 
